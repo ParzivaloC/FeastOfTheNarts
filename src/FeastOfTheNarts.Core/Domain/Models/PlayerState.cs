@@ -1,8 +1,8 @@
 ﻿namespace FeastOfTheNarts.Core.Domain.Models
 {
-    public class PlayerState
+    public class PlayerState(string playerId)
     {
-        public string PlayerId { get; set; } = string.Empty;
+        public string PlayerId { get; set; } = playerId;
         public string DisplayName { get; set; } = string.Empty;
 
         public int Lives { get; set; } = 2;
