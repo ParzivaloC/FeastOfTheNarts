@@ -123,11 +123,13 @@ namespace FeastOfTheNarts.Core.Services
             if (p1Score > p2Score)
             {
                 Player2State.Lives -= 1;
+                CurrentPlayerId = Player1State.PlayerId;
 
             }
             else if (p2Score > p1Score)
             {
                 Player1State.Lives -= 1;
+                CurrentPlayerId = Player2State.PlayerId;
             }
             else
             {
