@@ -87,8 +87,90 @@ namespace FeastOfTheNarts.Core.Services
 
         private void SwitchTurn()
         {
-            CurrentPlayerId = CurrentPlayerId == Player1State.PlayerId ? Player2State.PlayerId : Player1State.PlayerId;
-               
+            if (Player1State.HasPassed && Player2State.HasPassed)
+            {
+                ResolveRound();             
+                return;
+            }
+            
+            //смена текущего игрока на противположного после хода 
+            if (CurrentPlayerId == Player1State.PlayerId) 
+            {
+                CurrentPlayerId = Player2State.PlayerId;
+            }
+            else
+            {
+                CurrentPlayerId = Player1State.PlayerId;
+            }
+
+
+            //Проверка текущего игрока и если он уже спасовал , возвращаем ход другому игроку
+            if (CurrentPlayerId == Player1State.PlayerId && Player1State.HasPassed)
+            {
+                CurrentPlayerId = Player2State.PlayerId;
+            }
+            else if (CurrentPlayerId == Player2State.PlayerId && Player2State.HasPassed)
+            {
+                CurrentPlayerId = Player1State.PlayerId;
+            }  
+        }
+
+        private void ResolveRound()
+        { 
+            int p1Score = Board.Player1Board.GetTotalPower();
+            int p2Score = Board.Player2Board.GetTotalPower();
+
+            if (p1Score > p2Score)
+            {
+                Player2State.Lives -= 1;
+
+            }
+            else if (p2Score > p1Score)
+            {
+                Player1State.Lives -= 1;
+            }
+            else
+            {
+                Player1State.Lives -= 1;
+                Player2State.Lives -= 1;
+            }
+            ClearBoard();
+
+            Player1State.HasPassed = false;
+            Player2State.HasPassed = false; 
+        }
+
+        public void ClearBoard()
+        {
+            Player1State.DiscardPile.AddRange(Board.Player1Board.MeleeRow.Cards);
+            Player1State.DiscardPile.AddRange(Board.Player1Board.RangedRow.Cards);
+            Player1State.DiscardPile.AddRange(Board.Player1Board.SiegeRow.Cards);
+
+            Board.Player1Board.MeleeRow.Cards.Clear();
+            Board.Player1Board.RangedRow.Cards.Clear();
+            Board.Player1Board.SiegeRow.Cards.Clear();
+
+            Player2State.DiscardPile.AddRange(Board.Player2Board.MeleeRow.Cards);
+            Player2State.DiscardPile.AddRange(Board.Player2Board.RangedRow.Cards);
+            Player2State.DiscardPile.AddRange(Board.Player2Board.SiegeRow.Cards);
+
+            Board.Player2Board.MeleeRow.Cards.Clear();
+            Board.Player2Board.RangedRow.Cards.Clear();
+            Board.Player2Board.SiegeRow.Cards.Clear();
+        }
+
+
+        public void PassTurn(string playerId)
+        {
+            if (playerId == Player1State.PlayerId)
+            {
+                Player1State.HasPassed = true;
+            }
+            else if (playerId == Player2State.PlayerId)
+            {
+                Player2State.HasPassed = true;
+            }
+            SwitchTurn();
         }
     }
 }
