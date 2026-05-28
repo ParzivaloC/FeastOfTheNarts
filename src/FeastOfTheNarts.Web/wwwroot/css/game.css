@@ -1,0 +1,122 @@
+﻿.game-container {
+    display: grid;
+    /*левая колонка фиксированная (260px), правая (доска) занимает все оставшееся место */
+    grid-template-columns: 260px 1fr;
+    /*высота делится на две части: доска (занимает максимум) и рука игрока (автоматически по контенту) */
+    grid-template-rows: 1fr auto;
+    /*выравнивание зон с помощью Grid-областей */
+    grid-template-areas:
+        "sidebar board"
+        "sidebar hand";
+    gap: 15px;
+    padding: 15px;
+    min-height: 100vh; /*растягиваем на всю высоту экрана */
+    background-color: #1a1108; /*бэкграунд на случай, если текстура не прогрузится */
+    background-image: linear-gradient(rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0.4)), url('https://images.unsplash.com/photo-1541185933-ef5d8ed016c2?q=80&w=1920'); /* Временная текстура дерева */
+    background-size: cover;
+    background-position: center;
+    box-sizing: border-box;
+    color: #f0e6d2;
+    font-family: 'Georgia', serif; /*сказочный/эпический шрифт*/
+}
+
+/*ЛЕВАЯ ПАНЕЛЬ (Счет, Кристаллы, Пас)*/
+.side-panel {
+    grid-area: sidebar;
+    background-color: rgba(40, 26, 13, 0.9);
+    border: 3px solid #8a663e;
+    border-radius: 10px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
+    box-shadow: 0 10px 25px rgba(0,0,0,0.7);
+}
+
+/*ИГРОВОЕ ПОЛЕ*/
+.game-board {
+    grid-area: board;
+    display: grid;
+    /*делит доску строго на 6 горизонтальных рядов одинаковой высоты*/
+    grid-template-rows: repeat(6, 1fr);
+    gap: 6px;
+    background-color: rgba(20, 13, 7, 0.6);
+    border: 4px solid #543d24;
+    border-radius: 8px;
+    padding: 8px;
+}
+
+/*ОБЩИЙ СТИЛЬ ДЛЯ ВСЕХ РЯДОВ*/
+.battle-row {
+    border: 1px solid rgba(138, 102, 62, 0.4);
+    min-height: 110px;
+    padding: 5px 15px;
+    border-radius: 4px;
+    position: relative;
+    /*FLEXBOX чтобы карты внутри ряда вставали в одну шеренгу*/
+    display: flex;
+    flex-direction: row;
+    align-items: center; /*центрируем карты по вертикали внутри ряда */
+    justify-content: flex-start; /*куарты выстраиваются слева направо */
+    gap: 10px; /*расстояние между картами в ряду */
+}
+
+.opponent-row {
+    background-color: rgba(61, 40, 25, 0.4); /* Чуть темнее */
+}
+
+.player-row {
+    background-color: rgba(92, 64, 41, 0.4); /* Чуть светлее */
+}
+
+/*ЭФФЕКТ ДЛЯ DRAG & DROP: Подсветка ряда, когда мы занесли над ним карту*/
+.battle-row.drag-over {
+    background-color: rgba(212, 175, 55, 0.2) !important;
+    border: 2px dashed #d4af37;
+}
+
+/*Разделитель между войсками игрока и врага*/
+.opponent-row.melee {
+    border-bottom: 3px double #8a663e;
+}
+
+/*РУКА ИГРОКА*/
+.player-hand {
+    grid-area: hand;
+    background-color: rgba(31, 20, 10, 0.85);
+    border: 3px solid #6b4c2a;
+    border-radius: 10px;
+    min-height: 145px;
+    padding: 15px;
+    /* Карты в руке игрока центрируются */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 -5px 20px rgba(0,0,0,0.5);
+}
+
+/* ВРЕМЕННЫЙ СТИЛЬ ДЛЯ КАРТ*/
+.game-card {
+    width: 85px;
+    height: 120px;
+    background: linear-gradient(135deg, #e6d5b8, #c5b08d);
+    border: 2px solid #543d24;
+    border-radius: 6px;
+    color: #211306;
+    padding: 8px;
+    font-weight: bold;
+    font-size: 11pt;
+    cursor: grab; /* Курсор в виде руки */
+    user-select: none; /* Запрещаем выделять текст на карте при перетаскивании */
+    box-shadow: 3px 3px 8px rgba(0,0,0,0.4);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    transition: transform 0.1s;
+}
+
+    .game-card:active {
+        cursor: grabbing; /*курсор сжатого кулака при переносе*/
+        transform: scale(1.05);
+    }
