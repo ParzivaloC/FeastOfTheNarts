@@ -14,4 +14,9 @@
     <ProjectReference Include="..\FeastOfTheNarts.Core\FeastOfTheNarts.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\lib\" />
+    <Folder Include="wwwroot\images\" />
+  </ItemGroup>
+
 </Project>
