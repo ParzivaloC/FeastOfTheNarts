@@ -1,0 +1,88 @@
+﻿@* Null, чтобы убрать стандартную шапку сайта и занять весь экран *@
+@{
+    Layout = null;
+}
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Пир Нартов — ККИ</title>
+    <link rel="stylesheet" href="~/css/game.css" />
+</head>
+<body>
+
+    <div class="game-container">
+
+        <div class="side-panel left-panel">
+            <div class="opponent-info">
+                <h3 id="opt-name">Соперник (Батраз)</h3>
+                <div class="lives">❤️ <span id="opt-lives">2</span></div>
+                <div class="cards-count">🎴 Карт в руке: <span id="opt-hand-count">10</span></div>
+                <div class="total-score">Счет: <span id="opt-total">0</span></div>
+            </div>
+
+            <hr style="border-color: #8a663e; width: 100%;" />
+
+            <div class="player-info">
+                <h3 id="pl-name">Вы (Сослан)</h3>
+                <div class="lives">❤️ <span id="pl-lives">2</span></div>
+                <div class="cards-count">🎴 Колода: <span id="pl-deck-count">10</span></div>
+                <div class="total-score">Счет: <span id="pl-total">0</span></div>
+            </div>
+
+            <button id="pass-button" class="game-btn">Пас</button>
+        </div>
+
+        <div class="game-board">
+
+            <div class="battle-row opponent-row siege" data-row="Siege">
+                <div class="row-counter" id="opt-score-siege">0</div>
+                <div class="row-cards-container"></div>
+            </div>
+            <div class="battle-row opponent-row ranged" data-row="Ranged">
+                <div class="row-counter" id="opt-score-ranged">0</div>
+                <div class="row-cards-container"></div>
+            </div>
+            <div class="battle-row opponent-row melee" data-row="Melee">
+                <div class="row-counter" id="opt-score-melee">0</div>
+                <div class="row-cards-container"></div>
+            </div>
+
+            <div class="battle-row player-row melee" data-row="Melee">
+                <div class="row-counter" id="pl-score-melee">0</div>
+                <div class="row-cards-container"></div>
+            </div>
+            <div class="battle-row player-row ranged" data-row="Ranged">
+                <div class="row-counter" id="pl-score-ranged">0</div>
+                <div class="row-cards-container"></div>
+            </div>
+            <div class="battle-row player-row siege" data-row="Siege">
+                <div class="row-counter" id="pl-score-siege">0</div>
+                <div class="row-cards-container"></div>
+            </div>
+
+        </div>
+
+        <div class="player-hand" id="my-hand">
+            <div class="game-card" draggable="true" id="card-1001">
+                <div class="card-power">⚔️ 7</div>
+                <div class="card-name">Сослан</div>
+            </div>
+            <div class="game-card" draggable="true" id="card-1002">
+                <div class="card-power">🏹 5</div>
+                <div class="card-name">Батраз</div>
+            </div>
+            <div class="game-card" draggable="true" id="card-1003">
+                <div class="card-power">🔮 2</div>
+                <div class="card-name">Сырдон</div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="~/lib/microsoft/signalr/dist/browser/signalr.js"></script>
+    <script src="~/js/game.js"></script>
+</body>
+</html>

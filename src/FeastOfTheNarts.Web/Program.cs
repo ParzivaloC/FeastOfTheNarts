@@ -2,7 +2,8 @@ using FeastOfTheNarts.Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddControllers();
+//builder.Services.AddControllers();
+builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
 builder.Services.AddCors(options =>
@@ -17,6 +18,8 @@ builder.Services.AddCors(options =>
 });
 
 var app = builder.Build();
+
+app.UseStaticFiles();
 
 
 if (app.Environment.IsDevelopment())
@@ -77,5 +80,10 @@ app.MapGet("/test-match", () =>
 });
 
 //========================================================================================================
+
+app.MapControllerRoute(
+    name: "default",
+    pattern: "{controller=Game}/{action=Index}/{id?}");
+
 
 app.Run();
