@@ -1,11 +1,23 @@
+using Microsoft.AspNetCore.Authentication.Cookies;
+using FeastOfTheNarts.Core.Services;
 using FeastOfTheNarts.Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//builder.Services.AddControllers();
+builder.Services.AddSingleton<JsonUserService>();
+
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        // Если игрок попытается зайти на защищенную страницу игры без логина,
+        // его автоматически перенаправит сюда:
+        options.LoginPath = "/Account/Login";
+    });
+
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
+// Настройки для фронта
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -21,20 +33,20 @@ var app = builder.Build();
 
 app.UseStaticFiles();
 
-
 if (app.Environment.IsDevelopment())
 {
     app.UseDeveloperExceptionPage();
 }
 
 app.UseHttpsRedirection();
-
 app.UseCors("AllowFrontend");
 
+
+app.UseAuthentication();
 app.UseAuthorization();
 
-app.MapControllers();
 
+app.MapControllers();
 app.MapHub<GameHub>("/gamehub");
 
 
@@ -84,6 +96,5 @@ app.MapHub<GameHub>("/gamehub");
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Game}/{action=Index}/{id?}");
-
 
 app.Run();
