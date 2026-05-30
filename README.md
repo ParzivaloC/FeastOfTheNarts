@@ -26,7 +26,7 @@ Frontend: JavaScript / CSS Grid (или React для UI еще не решили
 
 [x] Реализация моделей данных (Cards, Deck, User).
 
-[ ] Настройка SignalR Hub для передачи состояния игры.
+[x] Настройка SignalR Hub для передачи состояния игры.
 
 [ ] Создание фронтенд-прототипа (Drag-and-Drop карт).
 
