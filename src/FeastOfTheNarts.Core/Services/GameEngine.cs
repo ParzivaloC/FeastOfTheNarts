@@ -30,10 +30,23 @@ namespace FeastOfTheNarts.Core.Services
             GenerateDummyDeck(Player1State);
             GenerateDummyDeck(Player2State);
 
+            Shuffle(Player1State.Deck);
+            Shuffle(Player2State.Deck);
+
             for (int i = 0; i < 10; i++)
             {
                 Player1State.DrawCard();
                 Player2State.DrawCard();
+            }
+        }
+
+        // Перемешивание колоды (Фишер–Йейтс)
+        private static void Shuffle(List<UnitCard> deck)
+        {
+            for (int i = deck.Count - 1; i > 0; i--)
+            {
+                int j = Random.Shared.Next(i + 1);
+                (deck[i], deck[j]) = (deck[j], deck[i]);
             }
         }
 
@@ -64,11 +77,13 @@ namespace FeastOfTheNarts.Core.Services
         {
             if (playerId != CurrentPlayerId) return false;// проверка, что ходит текущий игрок
 
-            var state = playerId == Player1State.PlayerId ? Player1State : Player2State;//проверка, что игрок играет своей картой
-            var playerBoard = playerId == Board.Player1Board.PlayerId ? Board.Player1Board : Board.Player2Board;//получаем состояние игрока и его игровое поле
+            // получаем состояние игрока и его игровое поле (определяем один раз, чтобы они не разъезжались)
+            bool isPlayer1 = playerId == Player1State.PlayerId;
+            var state = isPlayer1 ? Player1State : Player2State;
+            var playerBoard = isPlayer1 ? Board.Player1Board : Board.Player2Board;
 
-            var cardToPlay = state.Hand.FirstOrDefault( c => c.Id == cardId) as UnitCard;
-            if (cardToPlay == null) return false; // Карты нет в руке или это не юнит
+            var cardToPlay = state.Hand.FirstOrDefault(c => c.Id == cardId);
+            if (cardToPlay == null) return false; // Карты нет в руке
 
             // Пытаемся положить на стол
             bool isPlaced = playerBoard.PlaceCard(cardToPlay, targetRow);
