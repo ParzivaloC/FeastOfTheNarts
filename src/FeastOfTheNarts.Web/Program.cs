@@ -1,9 +1,14 @@
+using FeastOfTheNarts.Core.Services;
 using FeastOfTheNarts.Web.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 builder.Services.AddSignalR();
+
+// Один реестр матчей на всё приложение (Singleton): его должны видеть все
+// запросы и все соединения, и он обязан помнить матчи между вызовами.
+builder.Services.AddSingleton<IMatchManager, MatchManager>();
 
 builder.Services.AddCors(options =>
 {
