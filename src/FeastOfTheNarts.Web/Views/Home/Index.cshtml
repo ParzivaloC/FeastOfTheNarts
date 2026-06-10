@@ -1,0 +1,36 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+@{
+    ViewData["Title"] = "Главное меню — Пир Нартов";
+}
+
+<div class="main-menu-container">
+    <h1>⚔️ Пир Нартов ⚔️</h1>
+    <p>Добро пожаловать на великий пир, герой!</p>
+
+    <div class="menu-buttons">
+        <a asp-controller="Game" asp-action="Play" class="btn btn-primary btn-lg">
+            Начать игру (Поиск матча)
+        </a>
+
+        <a asp-controller="Home" asp-action="Rules" class="btn btn-secondary">
+            Правила эпоса
+        </a>
+    </div>
+</div>
+
+<style>
+    .main-menu-container {
+        text-align: center;
+        margin-top: 100px;
+        color: #e0d0b0;
+    }
+    .menu-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+        max-width: 300px;
+        margin: 40px auto 0;
+    }
+</style>
