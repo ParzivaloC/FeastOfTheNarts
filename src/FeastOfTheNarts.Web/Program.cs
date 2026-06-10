@@ -17,7 +17,10 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
-// Настройки для фронта
+// Один реестр матчей на всё приложение (Singleton): его должны видеть все
+// запросы и все соединения, и он обязан помнить матчи между вызовами.
+builder.Services.AddSingleton<IMatchManager, MatchManager>();
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -41,6 +44,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 app.UseCors("AllowFrontend");
 
+app.MapControllers();
 
 app.UseAuthentication();
 app.UseAuthorization();

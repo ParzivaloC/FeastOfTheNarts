@@ -22,10 +22,11 @@ namespace FeastOfTheNarts.Core.Domain.Models
 
         public bool PlaceCard(UnitCard card , CardRow targetRow)
         {
+            // Обычная карта кладётся только в свой ряд; гибкая (Special) — в любой боевой ряд по выбору игрока
             if (card.TargetRow != targetRow && card.TargetRow != CardRow.Special)
-                return false; // Карта не может быть размещена в этом ряду)
+                return false; // Карта не может быть размещена в этом ряду
 
-            switch (card.TargetRow)
+            switch (targetRow)
             {
                 case CardRow.Melee:
                     MeleeRow.Cards.Add(card);
@@ -37,7 +38,7 @@ namespace FeastOfTheNarts.Core.Domain.Models
                     SiegeRow.Cards.Add(card);
                     break;
                 default:
-                    return false; // Невозможно разместить карту
+                    return false; // Special — не боевой ряд, юнит туда не кладётся
             }
             return true;
         }
