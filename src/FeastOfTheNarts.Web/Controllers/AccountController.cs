@@ -15,8 +15,6 @@ namespace FeastOfTheNarts.Web.Controllers
             _userService = userService;
         }
 
-
-
         [HttpGet]
         public IActionResult Register()
         {
@@ -24,25 +22,42 @@ namespace FeastOfTheNarts.Web.Controllers
         }
 
         [HttpPost]
-        public IActionResult Register(string username, string password, string email, string phone)
+        public async Task<IActionResult> Register(string username, string email, string password, string returnUrl = "/")
         {
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
                 ViewBag.Error = "Логин и пароль обязательны!";
-                return View();
+                return RedirectToAction("Index", "Home");
             }
 
-            bool isRegistered = _userService.RegisterUser(username, password, email, phone);
+            // Передаем пустую строку вместо телефона, так как мы от него отказались
+            bool isRegistered = _userService.RegisterUser(username, password, email, "");
 
             if (!isRegistered)
             {
                 ViewBag.Error = "Пользователь с таким логином или почтой уже существует!";
-                return View();
+                return RedirectToAction("Index", "Home");
             }
 
-            return RedirectToAction("Game");
-        }
+            // АВТОМАТИЧЕСКИЙ ВХОД ПОСЛЕ УСПЕШНОЙ РЕГИСТРАЦИИ
+            var user = _userService.VerifyUser(username, password);
+            if (user != null)
+            {
+                var claims = new List<Claim>
+                {
+                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.NameIdentifier, user.Id.ToString())
+                };
 
+                var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                // Запись куки
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+            }
+
+            // Перенаправляем туда, откуда была вызвана модалка (в Игру или в Меню)
+            return Redirect(returnUrl);
+        }
 
         [HttpGet]
         public IActionResult Login()
@@ -51,16 +66,15 @@ namespace FeastOfTheNarts.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string username, string password)
+        public async Task<IActionResult> Login(string username, string password, string returnUrl = "/")
         {
             var user = _userService.VerifyUser(username, password);
 
             if (user == null)
             {
                 ViewBag.Error = "Неверный логин или пароль!";
-                return View();
+                return RedirectToAction("Index", "Home");
             }
-
 
             var claims = new List<Claim>
             {
@@ -70,10 +84,11 @@ namespace FeastOfTheNarts.Web.Controllers
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-            //запись куки
+            // Запись куки
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            return RedirectToAction("Index", "Game");
+            // Перенаправляем туда, откуда была вызвана модалка (в Игру или в Меню)
+            return Redirect(returnUrl);
         }
 
 
@@ -82,7 +97,9 @@ namespace FeastOfTheNarts.Web.Controllers
         public async Task<IActionResult> Logout()
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Login");
+
+            // После выхода возвращаем игрока на Главное меню
+            return RedirectToAction("Index", "Home");
         }
     }
 }
