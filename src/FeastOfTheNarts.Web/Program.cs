@@ -9,18 +9,19 @@ builder.Services.AddSingleton<JsonUserService>();
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        // Если игрок попытается зайти на защищенную страницу игры без логина,
-        // его автоматически перенаправит сюда:
+        //если игрок попытается зайти на защищенную страницу игры без логина,
+        //его автоматически перенаправит сюда:
         options.LoginPath = "/Account/Login";
     });
 
 builder.Services.AddControllersWithViews();
 builder.Services.AddSignalR();
 
-// Один реестр матчей на всё приложение (Singleton): его должны видеть все
-// запросы и все соединения, и он обязан помнить матчи между вызовами.
+//один реестр матчей на всё приложение (Singleton): его должны видеть все
+//запросы и все соединения, и он обязан помнить матчи между вызовами.
 builder.Services.AddSingleton<IMatchManager, MatchManager>();
 
+// Настройки для фронта
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
