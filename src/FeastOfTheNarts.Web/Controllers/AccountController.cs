@@ -30,7 +30,7 @@ namespace FeastOfTheNarts.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // Передаем пустую строку вместо телефона, так как мы от него отказались
+            //передает пустую строку вместо телефона, так как мы от него отказались
             bool isRegistered = _userService.RegisterUser(username, password, email, "");
 
             if (!isRegistered)
@@ -39,7 +39,7 @@ namespace FeastOfTheNarts.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            // АВТОМАТИЧЕСКИЙ ВХОД ПОСЛЕ УСПЕШНОЙ РЕГИСТРАЦИИ
+            //АВТОМАТИЧЕСКИЙ ВХОД ПОСЛЕ УСПЕШНОЙ РЕГИСТРАЦИИ
             var user = _userService.VerifyUser(username, password);
             if (user != null)
             {
@@ -51,11 +51,11 @@ namespace FeastOfTheNarts.Web.Controllers
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                // Запись куки
+                //запись куки(временное или постоянное решение: На усмотрение Амридину)
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
             }
 
-            // Перенаправляем туда, откуда была вызвана модалка (в Игру или в Меню)
+            //перенаправляем туда, откуда была вызвана модалка (в Игру или в Меню)
             return Redirect(returnUrl);
         }
 
@@ -84,10 +84,10 @@ namespace FeastOfTheNarts.Web.Controllers
 
             var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-            // Запись куки
+            //запись куки
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            // Перенаправляем туда, откуда была вызвана модалка (в Игру или в Меню)
+            //перенаправляет туда, откуда была вызвана модалка (в Игру или в Меню)
             return Redirect(returnUrl);
         }
 
@@ -98,7 +98,7 @@ namespace FeastOfTheNarts.Web.Controllers
         {
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-            // После выхода возвращаем игрока на Главное меню
+            //после выхода возвращаем игрока на Главное меню
             return RedirectToAction("Index", "Home");
         }
     }

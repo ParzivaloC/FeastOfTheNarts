@@ -18,14 +18,14 @@
         const isUserLoggedIn = @isAuthenticated.ToString().ToLower();
 
         if (isUserLoggedIn) {
-            // Если залогинен — летим в игру
+            //если залогинен - летим в игру
             window.location.href = "/Game";
         } else {
-            // Если нет — меняем скрытый инпут, чтобы после модалки перекинуло в игру
+            //если нет — меняем скрытый инпут, чтобы после модалки перекинуло в игру
             if (typeof setReturnUrl === "function") {
                 setReturnUrl('/Game');
             }
-            // Открываем модалку из _Layout
+            //открывает модалку из _Layout
             const myModal = new bootstrap.Modal(document.getElementById('authModal'));
             myModal.show();
         }
