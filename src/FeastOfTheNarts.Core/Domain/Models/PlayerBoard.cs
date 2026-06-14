@@ -43,7 +43,7 @@ namespace FeastOfTheNarts.Core.Domain.Models
                     SiegeRow.Cards.Add(card);
                     break;
                 default:
-                    return false; // Special — не боевой ряд, юнит туда не кладётся
+                    return false; // Special — не боевой ряд, юнит туда не кидается 
             }
             return true;
         }

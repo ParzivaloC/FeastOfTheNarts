@@ -27,8 +27,7 @@ namespace FeastOfTheNarts.Core.Services
 
         public void StartMatch()
         {
-            GenerateDummyDeck(Player1State);
-            GenerateDummyDeck(Player2State);
+            
 
             Shuffle(Player1State.Deck);
             Shuffle(Player2State.Deck);
@@ -50,28 +49,7 @@ namespace FeastOfTheNarts.Core.Services
             }
         }
 
-        //==========================================================Проверка
-        private void GenerateDummyDeck(PlayerState state)
-        {
-            int idOffset = state.PlayerId == Player1State.PlayerId ? 1000 : 2000;
-
-            for (int i = 1; i <= 20; i++)
-            {
-                var row = i % 3 == 0 ? CardRow.Melee : (i % 3 == 1 ? CardRow.Ranged : CardRow.Siege);
-
-                state.Deck.Add(new UnitCard
-                {
-                    Id = (idOffset + i).ToString(),
-                    BasePower = Random.Shared.Next(1, 11),
-                    IsHero = i % 10 == 0,
-                    TargetRow = row
-                });
-            }
-
-            // Подкидываем в колоду особые карты "Пира Нартов", чтобы их можно было разыграть и протестировать
-            state.Deck.AddRange(CardCatalog.CreateSpecialCards());
-        }
-        //===========================================================
+        
 
 
         public bool PlayCard(string playerId, string cardId, CardRow targetRow)
@@ -84,7 +62,7 @@ namespace FeastOfTheNarts.Core.Services
             var board = isPlayer1 ? Board.Player1Board : Board.Player2Board;
             var enemyState = isPlayer1 ? Player2State : Player1State;
 
-            var card = state.Hand.FirstOrDefault(c => c.Id == cardId);
+            var card = state.Hand.FirstOrDefault(c => c.Id == cardId);// проверяем, что карта есть в руке
             if (card == null) return false; // Карты нет в руке
 
             // Разные типы карт играются по-разному
@@ -125,9 +103,11 @@ namespace FeastOfTheNarts.Core.Services
             {
                 if (effect.Effect == EffectType.BalsagWheel && row == CardRow.Melee && !card.IsHero)
                     card.CurrentPower = 1;
+                else if (effect.Effect == EffectType.ShatanaWisdom)
+                    card.CurrentPower = card.BasePower;
             }
         }
-
+        // Проверяет способность юнита при выходе на поле и выполняет её эффект
         private void TriggerEnterAbility(UnitCard unit, PlayerBoard board)
         {
             switch (unit.Ability)
