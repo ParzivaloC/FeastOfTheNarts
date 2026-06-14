@@ -96,63 +96,25 @@ namespace FeastOfTheNarts.Core.Services
             return true;
         }
 
-        // Применяет к ОДНОЙ только что выставленной карте уже действующие на столе эффекты
-        private void ApplyActiveEffectsToCard(UnitCard card, CardRow row)
+        //==========================================================Проверка 
+        private void GenerateDummyDeck(PlayerState state)
         {
-            foreach (var effect in Board.ActiveEffects)
-            {
-                if (effect.Effect == EffectType.BalsagWheel && row == CardRow.Melee && !card.IsHero)
-                    card.CurrentPower = 1;
-                else if (effect.Effect == EffectType.ShatanaWisdom)
-                    card.CurrentPower = card.BasePower;
-            }
-        }
-        // Проверяет способность юнита при выходе на поле и выполняет её эффект
-        private void TriggerEnterAbility(UnitCard unit, PlayerBoard board)
-        {
-            switch (unit.Ability)
-            {
-                case HeroAbility.BatradzRage:
-                    ResolveBatradzRage(unit);
-                    break;
-                case HeroAbility.KhamytsRally:
-                    ResolveKhamytsRally(board);
-                    break;
-                case HeroAbility.AtsamazMelody:
-                    ResolveAtsamazMelody(unit, board);
-                    break;
-                // SoslanImmunity — пассивная, на выход не реагирует
-            }
-        }
+            int idOffset = state.PlayerId == Player1State.PlayerId ? 1000 : 2000;
 
-        // Ярость Батрадза: 2 урона всем в обоих рядах воинов (кроме себя), +1 за каждый удар;
-        // отряд с силой <= 0 погибает и уходит в сброс владельца.
-        private void ResolveBatradzRage(UnitCard batradz)
-        {
-            int rage = 0;
-
-            foreach (var owner in new[] { Player1State, Player2State })
+            for (int i = 1; i <= 20; i++)
             {
-                var melee = BoardOf(owner).MeleeRow;
-                var killed = new List<UnitCard>();
+                var row = i % 3 == 0 ? CardRow.Melee : (i % 3 == 1 ? CardRow.Ranged : CardRow.Siege);
 
-                foreach (var card in melee.Cards)
+                state.Deck.Add(new UnitCard
                 {
-                    if (card == batradz) continue;
-                    card.CurrentPower -= 2;
-                    rage++;
-                    if (card.CurrentPower <= 0) killed.Add(card);
-                }
-
-                foreach (var dead in killed)
-                {
-                    melee.Cards.Remove(dead);
-                    owner.DiscardPile.Add(dead);
-                }
+                    Id = (idOffset + i).ToString(),
+                    BasePower = Random.Shared.Next(1, 11),
+                    IsHero = i % 10 == 0,
+                    TargetRow = row
+                });
             }
-
-            batradz.CurrentPower += rage;
         }
+        //===========================================================
 
         // Быстрый наскок Хамыца: призвать из своей колоды всех обычных нартов с базовой силой <= 4 в ряд Бората (Ranged)
         private void ResolveKhamytsRally(PlayerBoard board)

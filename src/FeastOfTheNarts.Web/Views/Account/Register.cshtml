@@ -1,0 +1,40 @@
+﻿@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Регистрация в Пире Нартов";
+}
+
+<div class="container mt-5" style="max-width: 400px;">
+    <h2 class="text-center mb-4 text-warning">Регистрация игрока</h2>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger text-center">@ViewBag.Error</div>
+    }
+
+    <form action="/Account/Register" method="POST" class="p-4 border rounded shadow-sm card-auth">
+        <div class="mb-3">
+            <label for="username" class="form-label">Имя пользователя (Логин)</label>
+            <input type="text" class="form-control" id="username" name="username" required autocomplete="off" />
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Электронная почта</label>
+            <input type="email" class="form-control" id="email" name="email" required />
+        </div>
+
+        <div class="mb-3">
+            <label for="password" class="form-label">Пароль</label>
+            <input type="password" class="form-control" id="password" name="password" required />
+        </div>
+
+        <button type="submit" class="btn btn-primary w-100 fw-bold">Создать аккаунт</button>
+    </form>
+
+    <div class="text-center mt-3">
+        <a href="/Account/Login" class="text-info">Уже есть аккаунт? Войти</a>
+    </div>
+</div>
