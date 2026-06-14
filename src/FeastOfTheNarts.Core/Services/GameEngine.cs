@@ -13,6 +13,11 @@ namespace FeastOfTheNarts.Core.Services
 
         public string CurrentPlayerId { get; private set; }
 
+        public GamePhase Phase { get; private set; } = GamePhase.NotStarted;
+
+        // Id победителя. null — если ничья или матч ещё не окончен.
+        public string? WinnerId { get; private set; }
+
 
         public GameEngine(string matchId, string player1Id, string player2Id)
         {
@@ -27,7 +32,7 @@ namespace FeastOfTheNarts.Core.Services
 
         public void StartMatch()
         {
-            
+
 
             Shuffle(Player1State.Deck);
             Shuffle(Player2State.Deck);
@@ -37,6 +42,8 @@ namespace FeastOfTheNarts.Core.Services
                 Player1State.DrawCard();
                 Player2State.DrawCard();
             }
+
+            Phase = GamePhase.InProgress; // карты розданы — матч идёт
         }
 
         // Перемешивание колоды (Фишер–Йейтс)
@@ -49,11 +56,12 @@ namespace FeastOfTheNarts.Core.Services
             }
         }
 
-        
+
 
 
         public bool PlayCard(string playerId, string cardId, CardRow targetRow)
         {
+            if (Phase != GamePhase.InProgress) return false; // нельзя ходить, пока матч не идёт / уже окончен
             if (playerId != CurrentPlayerId) return false;// проверка, что ходит текущий игрок
 
             // получаем состояние игрока и его игровое поле (определяем один раз, чтобы они не разъезжались)
@@ -68,10 +76,10 @@ namespace FeastOfTheNarts.Core.Services
             // Разные типы карт играются по-разному
             bool played = card switch
             {
-                UnitCard unit   => PlayUnit(unit, board, targetRow),
-                EventCard ev    => PlayEvent(ev, state),
+                UnitCard unit => PlayUnit(unit, board, targetRow),
+                EventCard ev => PlayEvent(ev, state),
                 SpellCard spell => PlaySpell(spell, state, enemyState),
-                _               => false
+                _ => false
             };
 
             if (played)
@@ -94,6 +102,63 @@ namespace FeastOfTheNarts.Core.Services
             // Затем срабатывает собственная способность "при выходе на поле"
             TriggerEnterAbility(unit, board);
             return true;
+        }
+
+        // Применяет к ОДНОЙ только что выставленной карте уже действующие на столе эффекты
+        private void ApplyActiveEffectsToCard(UnitCard card, CardRow row)
+        {
+            foreach (var effect in Board.ActiveEffects)
+            {
+                if (effect.Effect == EffectType.BalsagWheel && row == CardRow.Melee && !card.IsHero)
+                    card.CurrentPower = 1;
+            }
+        }
+
+        // Запускает способность героя "при выходе на поле"
+        private void TriggerEnterAbility(UnitCard unit, PlayerBoard board)
+        {
+            switch (unit.Ability)
+            {
+                case HeroAbility.BatradzRage:
+                    ResolveBatradzRage(unit);
+                    break;
+                case HeroAbility.KhamytsRally:
+                    ResolveKhamytsRally(board);
+                    break;
+                case HeroAbility.AtsamazMelody:
+                    ResolveAtsamazMelody(unit, board);
+                    break;
+                    // SoslanImmunity — пассивная, на выход не реагирует
+            }
+        }
+
+        // Ярость Батрадза: 2 урона всем в обоих рядах воинов (кроме себя), +1 за каждый удар;
+        // отряд с силой <= 0 погибает и уходит в сброс владельца.
+        private void ResolveBatradzRage(UnitCard batradz)
+        {
+            int rage = 0;
+
+            foreach (var owner in new[] { Player1State, Player2State })
+            {
+                var melee = BoardOf(owner).MeleeRow;
+                var killed = new List<UnitCard>();
+
+                foreach (var card in melee.Cards)
+                {
+                    if (card == batradz) continue;
+                    card.CurrentPower -= 2;
+                    rage++;
+                    if (card.CurrentPower <= 0) killed.Add(card);
+                }
+
+                foreach (var dead in killed)
+                {
+                    melee.Cards.Remove(dead);
+                    owner.DiscardPile.Add(dead);
+                }
+            }
+
+            batradz.CurrentPower += rage;
         }
 
         //==========================================================Проверка 
@@ -291,6 +356,23 @@ namespace FeastOfTheNarts.Core.Services
 
             Player1State.HasPassed = false;
             Player2State.HasPassed = false;
+
+            CheckForGameEnd();
+        }
+
+        // Проверяет, не закончился ли матч после потери жизней
+        private void CheckForGameEnd()
+        {
+            bool p1Dead = Player1State.Lives <= 0;
+            bool p2Dead = Player2State.Lives <= 0;
+
+            if (!p1Dead && !p2Dead) return; // оба живы — матч продолжается
+
+            Phase = GamePhase.Finished;
+
+            if (p1Dead && p2Dead) WinnerId = null;                 // ничья — оба проиграли в один раунд
+            else if (p2Dead) WinnerId = Player1State.PlayerId; // выжил первый
+            else WinnerId = Player2State.PlayerId; // выжил второй
         }
 
         public void ClearBoard()
@@ -317,6 +399,8 @@ namespace FeastOfTheNarts.Core.Services
 
         public void PassTurn(string playerId)
         {
+            if (Phase != GamePhase.InProgress) return;
+
             if (playerId == Player1State.PlayerId)
             {
                 Player1State.HasPassed = true;
