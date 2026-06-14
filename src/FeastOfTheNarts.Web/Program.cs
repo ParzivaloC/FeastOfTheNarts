@@ -69,9 +69,9 @@ app.MapHub<GameHub>("/gamehub");
 //    // 2. Запускаем раздачу
 //    engine.StartMatch();
 
-//    // 3. Разыгрываем пару карт для теста (имитируем ход)
-//    // Достаем первую карту из руки Сослана
-//    var cardToPlay = engine.Player1State.Hand.First();
+    // 3. Разыгрываем пару карт для теста (имитируем ход)
+    // Достаем первого юнита из руки Сослана (рука хранит BaseCard, нам нужен именно UnitCard)
+    var cardToPlay = engine.Player1State.Hand.OfType<FeastOfTheNarts.Core.Domain.Models.UnitCard>().First();
 
 //     // Сослан кладет свою первую карту на стол в нужный ряд
 //    engine.PlayCard("Player_Soslan", cardToPlay.Id, cardToPlay.TargetRow);

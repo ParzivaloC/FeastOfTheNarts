@@ -13,10 +13,10 @@ namespace FeastOfTheNarts.Core.Domain.Models
             Type = type;
         }
 
-        // Метод для расчета общей силы карт в ряду
+        // Метод для расчета общей силы карт в ряду (по ТЕКУЩЕЙ силе, с учётом эффектов)
         public int GetTotalPower()
         {
-            return Cards.Sum(c => c.BasePower);
+            return Cards.Sum(c => c.CurrentPower);
         }
     }
 }

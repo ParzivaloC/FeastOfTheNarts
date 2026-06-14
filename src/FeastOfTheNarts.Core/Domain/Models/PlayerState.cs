@@ -10,10 +10,11 @@
         //Флаг паса (если игрок спасовал, он больше не ходит в этом раунде)
         public bool HasPassed { get; set; } = false;
 
-        // Игровые зоны (колода , личная колода(рука) , сброс)
-        public List<UnitCard> Deck { get; set; } = new List<UnitCard>();
-        public List<UnitCard> Hand { get; set; } = new List<UnitCard>();
-        public List<UnitCard> DiscardPile { get; set; } = new List<UnitCard>();
+        // Игровые зоны (колода , рука , сброс). Тип BaseCard — чтобы хранить
+        // карты любого вида: юнитов, события и заклинания.
+        public List<BaseCard> Deck { get; set; } = new List<BaseCard>();
+        public List<BaseCard> Hand { get; set; } = new List<BaseCard>();
+        public List<BaseCard> DiscardPile { get; set; } = new List<BaseCard>();
 
         public void DrawCard()
         {
