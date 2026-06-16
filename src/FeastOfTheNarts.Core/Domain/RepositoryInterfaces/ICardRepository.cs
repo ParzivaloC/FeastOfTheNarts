@@ -12,16 +12,8 @@ namespace FeastOfTheNarts.Core.Domain.RepositoryInterfaces
         IEnumerable<UnitCard> GetUnitCards();
         IEnumerable<EventCard> GetEventCards();
         IEnumerable<SpellCard> GetSpellCards();
-        UnitCard GetUnitCard(string id);
-        EventCard GetEventCard(string id);
-        SpellCard GetSpellCard(string id);
-    }
-
-    public class SpellCard
-    {
-    }
-
-    public class EventCard
-    {
+        UnitCard? GetUnitCard(string id);
+        EventCard? GetEventCard(string id);
+        SpellCard? GetSpellCard(string id);
     }
 }

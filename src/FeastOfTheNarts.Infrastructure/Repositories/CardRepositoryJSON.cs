@@ -22,15 +22,12 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
             _eventCards = [];
             _spellCards = [];
 
-            var json = File.ReadAllText("cards.json");
+            var json = File.ReadAllText("../Data/cards.catalog.json");
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
 
-            // Маппинг UnitCard
             if (root.TryGetProperty("unitCards", out var unitCardsElement))
-            {
                 foreach (var element in unitCardsElement.EnumerateArray())
-                {
                     _unitCards.Add(new UnitCard
                     {
                         Id = element.GetProperty("id").GetString()!,
@@ -42,14 +39,9 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
                         IsHero = element.GetProperty("isHero").GetBoolean(),
                         Ability = Enum.Parse<HeroAbility>(element.GetProperty("ability").GetString()!)
                     });
-                }
-            }
 
-            // Маппинг EventCard
             if (root.TryGetProperty("eventCards", out var eventCardsElement))
-            {
                 foreach (var element in eventCardsElement.EnumerateArray())
-                {
                     _eventCards.Add(new EventCard
                     {
                         Id = element.GetProperty("id").GetString()!,
@@ -58,14 +50,9 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
                         Faction = Enum.Parse<Faction>(element.GetProperty("faction").GetString()!),
                         Effect = Enum.Parse<EffectType>(element.GetProperty("effect").GetString()!)
                     });
-                }
-            }
 
-            // Маппинг SpellCard
             if (root.TryGetProperty("spellCards", out var spellCardsElement))
-            {
                 foreach (var element in spellCardsElement.EnumerateArray())
-                {
                     _spellCards.Add(new SpellCard
                     {
                         Id = element.GetProperty("id").GetString()!,
@@ -74,17 +61,15 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
                         Faction = Enum.Parse<Faction>(element.GetProperty("faction").GetString()!),
                         Effect = Enum.Parse<SpellEffect>(element.GetProperty("effect").GetString()!)
                     });
-                }
-            }
         }
 
-        public IEnumerable<UnitCard> GetAllUnitCards() => _unitCards;
-        public IEnumerable<EventCard> GetAllEventCards() => _eventCards;
-        public IEnumerable<SpellCard> GetAllSpellCards() => _spellCards;
+        public IEnumerable<UnitCard> GetUnitCards() => _unitCards;
+        public IEnumerable<EventCard> GetEventCards() => _eventCards;
+        public IEnumerable<SpellCard> GetSpellCards() => _spellCards;
 
-        public UnitCard? GetUnitCardById(string id) => _unitCards.FirstOrDefault(c => c.Id == id);
-        public EventCard? GetEventCardById(string id) => _eventCards.FirstOrDefault(c => c.Id == id);
-        public SpellCard? GetSpellCardById(string id) => _spellCards.FirstOrDefault(c => c.Id == id);
+        public UnitCard? GetUnitCard(string id) => _unitCards.FirstOrDefault(c => c.Id == id);
+        public EventCard? GetEventCard(string id) => _eventCards.FirstOrDefault(c => c.Id == id);
+        public SpellCard? GetSpellCard(string id) => _spellCards.FirstOrDefault(c => c.Id == id);
     }
 
 }
