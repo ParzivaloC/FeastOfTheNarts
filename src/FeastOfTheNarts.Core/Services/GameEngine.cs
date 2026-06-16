@@ -32,6 +32,12 @@ namespace FeastOfTheNarts.Core.Services
 
         public void StartMatch()
         {
+            /////////////////////////////Проверка 
+            GenerateDummyDeck(Player1State);
+            GenerateDummyDeck(Player2State);
+
+
+            ////////////
 
 
             Shuffle(Player1State.Deck);
