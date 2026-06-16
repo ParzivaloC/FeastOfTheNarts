@@ -293,13 +293,6 @@ namespace FeastOfTheNarts.Core.Services
         private PlayerState StateOf(PlayerBoard board) =>
             board == Board.Player1Board ? Player1State : Player2State;
 
-        // ---------- Вспомогательные сопоставления игрок <-> поле ----------
-        private PlayerBoard BoardOf(PlayerState state) =>
-            state == Player1State ? Board.Player1Board : Board.Player2Board;
-
-        private PlayerState StateOf(PlayerBoard board) =>
-            board == Board.Player1Board ? Player1State : Player2State;
-
         private void SwitchTurn()
         {
             if (Player1State.HasPassed && Player2State.HasPassed)
