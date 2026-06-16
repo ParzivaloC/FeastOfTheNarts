@@ -96,6 +96,63 @@ namespace FeastOfTheNarts.Core.Services
             return true;
         }
 
+        // Применяет к ОДНОЙ только что выставленной карте уже действующие на столе эффекты
+        private void ApplyActiveEffectsToCard(UnitCard card, CardRow row)
+        {
+            foreach (var effect in Board.ActiveEffects)
+            {
+                if (effect.Effect == EffectType.BalsagWheel && row == CardRow.Melee && !card.IsHero)
+                    card.CurrentPower = 1;
+            }
+        }
+
+        // Запускает способность героя "при выходе на поле"
+        private void TriggerEnterAbility(UnitCard unit, PlayerBoard board)
+        {
+            switch (unit.Ability)
+            {
+                case HeroAbility.BatradzRage:
+                    ResolveBatradzRage(unit);
+                    break;
+                case HeroAbility.KhamytsRally:
+                    ResolveKhamytsRally(board);
+                    break;
+                case HeroAbility.AtsamazMelody:
+                    ResolveAtsamazMelody(unit, board);
+                    break;
+                // SoslanImmunity — пассивная, на выход не реагирует
+            }
+        }
+
+        // Ярость Батрадза: 2 урона всем в обоих рядах воинов (кроме себя), +1 за каждый удар;
+        // отряд с силой <= 0 погибает и уходит в сброс владельца.
+        private void ResolveBatradzRage(UnitCard batradz)
+        {
+            int rage = 0;
+
+            foreach (var owner in new[] { Player1State, Player2State })
+            {
+                var melee = BoardOf(owner).MeleeRow;
+                var killed = new List<UnitCard>();
+
+                foreach (var card in melee.Cards)
+                {
+                    if (card == batradz) continue;
+                    card.CurrentPower -= 2;
+                    rage++;
+                    if (card.CurrentPower <= 0) killed.Add(card);
+                }
+
+                foreach (var dead in killed)
+                {
+                    melee.Cards.Remove(dead);
+                    owner.DiscardPile.Add(dead);
+                }
+            }
+
+            batradz.CurrentPower += rage;
+        }
+
         //==========================================================Проверка 
         private void GenerateDummyDeck(PlayerState state)
         {
@@ -228,6 +285,13 @@ namespace FeastOfTheNarts.Core.Services
                 }
             }
         }
+
+        // ---------- Вспомогательные сопоставления игрок <-> поле ----------
+        private PlayerBoard BoardOf(PlayerState state) =>
+            state == Player1State ? Board.Player1Board : Board.Player2Board;
+
+        private PlayerState StateOf(PlayerBoard board) =>
+            board == Board.Player1Board ? Player1State : Player2State;
 
         // ---------- Вспомогательные сопоставления игрок <-> поле ----------
         private PlayerBoard BoardOf(PlayerState state) =>
