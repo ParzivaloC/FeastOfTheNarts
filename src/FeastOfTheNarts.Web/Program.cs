@@ -6,8 +6,11 @@ using FeastOfTheNarts.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Регистрация репозитория
+// Регистрация репозитория пользователей
 builder.Services.AddSingleton<IUserRepository, UserRepositoryJSON>();
+
+// Регистрация репозитория для карточек
+builder.Services.AddSingleton<ICardRepository, CardRepository>();
 
 builder.Services.AddSingleton<UserService>();
 
