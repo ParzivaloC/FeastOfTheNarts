@@ -12,6 +12,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\FeastOfTheNarts.Core\FeastOfTheNarts.Core.csproj" />
+    <ProjectReference Include="..\FeastOfTheNarts.Infrastructure\FeastOfTheNarts.Infrastructure.csproj" />
   </ItemGroup>
 
   <ItemGroup>
