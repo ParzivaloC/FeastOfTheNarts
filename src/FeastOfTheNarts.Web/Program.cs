@@ -23,7 +23,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        // поля поедут в camelCase: фронт читает state.you.lives, а не state.You.Lives
+        options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
+
+builder.Services.AddSingleton<FeastOfTheNarts.Web.Services.MatchmakingService>();
 
 //один реестр матчей на всё приложение (Singleton): его должны видеть все
 //запросы и все соединения, и он обязан помнить матчи между вызовами.
