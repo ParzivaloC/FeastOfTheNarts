@@ -14,5 +14,13 @@
     "Email": "bicherahovartur12@mail.ru",
     "Wins": 0,
     "Losses": 0
+  },
+  {
+    "Id": "7edb65f2-c67a-434c-9c03-b150a5da13c8",
+    "Username": "Admin",
+    "PasswordHash": "AQAAAAIAAYagAAAAEE/3\u002BDxyxR/WkllkmKgDo0RB6iqR6XIdN6IUM8N\u002BOGJXGme4f/wJLzHb0BMp\u002BgUZzQ==",
+    "Email": "admin123@gmail.com",
+    "Wins": 0,
+    "Losses": 0
   }
 ]
