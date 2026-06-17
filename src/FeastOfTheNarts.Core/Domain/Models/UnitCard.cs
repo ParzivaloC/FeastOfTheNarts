@@ -1,5 +1,4 @@
 ﻿using FeastOfTheNarts.Core.Domain.Enums;
-using FeastOfTheNarts.Core.Domain.Enums.Models;
 
 namespace FeastOfTheNarts.Core.Domain.Models
 {

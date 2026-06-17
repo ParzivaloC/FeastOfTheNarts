@@ -1,7 +1,7 @@
 ﻿using FeastOfTheNarts.Core.Domain.Enums;
 
 
-namespace FeastOfTheNarts.Core.Domain.Enums.Models
+namespace FeastOfTheNarts.Core.Domain.Models
 {
     public abstract class BaseCard
     {

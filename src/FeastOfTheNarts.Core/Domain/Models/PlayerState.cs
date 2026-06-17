@@ -19,8 +19,8 @@
         {
             if (Deck.Count > 0)
             {
-                var card = Deck.First();
-                Deck.Remove(card);
+                var card = Deck[0];
+                Deck.RemoveAt(0);
                 Hand.Add(card);
             }
         }
