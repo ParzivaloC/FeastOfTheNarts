@@ -1,10 +1,18 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using FeastOfTheNarts.Core.Services;
 using FeastOfTheNarts.Web.Hubs;
+using FeastOfTheNarts.Core.Services;
+using FeastOfTheNarts.Core.Domain.RepositoryInterfaces;
+using FeastOfTheNarts.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<JsonUserService>();
+// Регистрация репозитория пользователей
+builder.Services.AddSingleton<IUserRepository, UserRepositoryJSON>();
+
+// Регистрация репозитория для карточек
+builder.Services.AddSingleton<ICardRepository, CardRepository>();
+
+builder.Services.AddSingleton<UserService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
@@ -15,7 +23,14 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
     });
 
 builder.Services.AddControllersWithViews();
-builder.Services.AddSignalR();
+builder.Services.AddSignalR()
+    .AddJsonProtocol(options =>
+    {
+        // поля поедут в camelCase: фронт читает state.you.lives, а не state.You.Lives
+        options.PayloadSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
+
+builder.Services.AddSingleton<FeastOfTheNarts.Web.Services.MatchmakingService>();
 
 //один реестр матчей на всё приложение (Singleton): его должны видеть все
 //запросы и все соединения, и он обязан помнить матчи между вызовами.
@@ -69,9 +84,9 @@ app.MapHub<GameHub>("/gamehub");
 //    // 2. Запускаем раздачу
 //    engine.StartMatch();
 
-//    // 3. Разыгрываем пару карт для теста (имитируем ход)
-//    // Достаем первую карту из руки Сослана
-//    var cardToPlay = engine.Player1State.Hand.First();
+    // 3. Разыгрываем пару карт для теста (имитируем ход)
+    // Достаем первого юнита из руки Сослана (рука хранит BaseCard, нам нужен именно UnitCard)
+    //var cardToPlay = engine.Player1State.Hand.OfType<FeastOfTheNarts.Core.Domain.Models.UnitCard>().First();
 
 //     // Сослан кладет свою первую карту на стол в нужный ряд
 //    engine.PlayCard("Player_Soslan", cardToPlay.Id, cardToPlay.TargetRow);

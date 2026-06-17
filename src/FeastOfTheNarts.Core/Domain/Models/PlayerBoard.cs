@@ -10,6 +10,9 @@ namespace FeastOfTheNarts.Core.Domain.Models
         public BoardRow RangedRow { get; } = new(CardRow.Ranged);
         public BoardRow SiegeRow { get; } = new(CardRow.Siege);
 
+        // Удобный перебор всех боевых рядов (нужно эффектам, перебирающим всё поле)
+        public IEnumerable<BoardRow> Rows => new[] { MeleeRow, RangedRow, SiegeRow };
+
         public PlayerBoard(string playerId)
         {
             PlayerId = playerId;
@@ -26,6 +29,8 @@ namespace FeastOfTheNarts.Core.Domain.Models
             if (card.TargetRow != targetRow && card.TargetRow != CardRow.Special)
                 return false; // Карта не может быть размещена в этом ряду
 
+            card.CurrentPower = card.BasePower; // карта выходит на поле с полной (базовой) силой
+
             switch (targetRow)
             {
                 case CardRow.Melee:
@@ -38,7 +43,7 @@ namespace FeastOfTheNarts.Core.Domain.Models
                     SiegeRow.Cards.Add(card);
                     break;
                 default:
-                    return false; // Special — не боевой ряд, юнит туда не кладётся
+                    return false; // Special — не боевой ряд, юнит туда не кидается 
             }
             return true;
         }

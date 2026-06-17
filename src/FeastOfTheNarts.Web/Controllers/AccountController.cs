@@ -8,9 +8,9 @@ namespace FeastOfTheNarts.Web.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly JsonUserService _userService;
+        private readonly UserService _userService;
 
-        public AccountController(JsonUserService userService)
+        public AccountController(UserService userService)
         {
             _userService = userService;
         }
