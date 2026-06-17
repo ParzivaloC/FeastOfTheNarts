@@ -1,233 +1,242 @@
-﻿//инициализация подключения к серверу через SignalR
+﻿//МОК СОСТОЯНИЯ ИГРЫ (Единый camelCase контракт) тестовый
+const mockGameState = {
+    you: {
+        lives: 2,
+        totalPower: 14,
+        handCount: 3,
+        deckCount: 22,
+        melee: {
+            power: 6, cards: [
+                { id: "card-1", name: "Уастырджи", power: 6, row: "Melee", isHero: true }
+            ]
+        },
+        ranged: {
+            power: 8, cards: [
+                { id: "card-2", name: "Лучник Нартов", power: 4, row: "Ranged", isHero: false },
+                { id: "card-3", name: "Старейшина", power: 4, row: "Ranged", isHero: false }
+            ]
+        },
+        siege: { power: 0, cards: [] },
+        hand: [
+            { id: "card-4", name: "Всадник", power: 5, row: "Melee", isHero: false },
+            { id: "card-5", name: "Нартский Пир", power: 3, row: "Siege", isHero: false }
+        ]
+    },
+    opponent: {
+        lives: 1,
+        totalPower: 5,
+        handCount: 4,
+        deckCount: 24,
+        melee: {
+            power: 5, cards: [
+                { id: "card-6", name: "Вражеский воин", power: 5, row: "Melee", isHero: false }
+            ]
+        },
+        ranged: { power: 0, cards: [] },
+        siege: { power: 0, cards: [] }
+    }
+};
+
+
+
+//ИНИЦИАЛИЗАЦИЯ SIGNALR СЕРВЕРА
 const connection = new signalR.HubConnectionBuilder()
     .withUrl("/gamehub")
     .build();
 
-//подключение к серверу при старте
 connection.start()
     .then(() => {
         console.log("Успешно подключено к игровому серверу Пир Нартов!");
-        connection.invoke("JoinMatch", "Player_Soslan"); //сообщаем серверу, кто мы
+        connection.invoke("JoinMatch", "Gin Sakai");
     })
-    .catch(err => console.error("Ошибка подключения: ", err.toString()));
+    .catch(err => console.error("Ошибка подключения SignalR: ", err.toString()));
 
-//СЛУШАТЕЛЬ: Сервер присылает обновленное состояние игры всем участникам
+//слушатель обновлений от сервера
 connection.on("UpdateGameState", (gameState) => {
     console.log("Получены реальные данные от движка:", gameState);
-    saveStateToLocalStorage(gameState); //Сохраняем свежую правду от сервера в браузер
-    renderGameState(gameState); //перерисовка экрана
+    saveStateToLocalStorage(gameState);
+    renderBoard(gameState);
 });
 
-//ЛОГИКА СОХРАНЕНИЯ СОСТОЯНИЯ (Local Storage) временно??? (на усмотрение Амридина)
-//временный инструмент, чтобы интерфейс не умирал при перезагрузке страницы
+
+
+//РАБОТА С ЛОКАЛЬНЫМ ХРАНИЛИЩЕМ (Local Storage)
 function saveStateToLocalStorage(state) {
-    localStorage.setItem("nartsMockGameState", JSON.stringify(state));
+    localStorage.setItem("nartsGameState", JSON.stringify(state));
 }
 
 function loadStateFromLocalStorage() {
-    const saved = localStorage.getItem("nartsMockGameState");
+    const saved = localStorage.getItem("nartsGameState");
     return saved ? JSON.parse(saved) : null;
 }
 
 
 
-
-//ИНИЦИАЛИЗАЦИЯ ИНТЕРФЕЙСА
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("Интерфейс инициализирован.");
-
-    //очистка старого кэша, чтобы проверить, появятся ли карты
-    localStorage.removeItem("nartsMockGameState"); 
-
-    let currentState = loadStateFromLocalStorage();
-
-    if (!currentState) {
-        console.log("Состояние пустое, загружаю начальные карты...");
-        currentState = {
-            currentPlayerId: "Gin Sakai",
-            playerState: {
-                lives: 2,
-                hand: [
-                    { id: "1002", name: "Батраз", basePower: 5, targetRow: "Ranged" },
-                    { id: "1003", name: "Сырдон", basePower: 2, targetRow: "Siege" },
-                    { id: "1004", name: "Ацамаз", basePower: 4, targetRow: "Melee" }
-                ],
-                deckCount: 18
-            },
-            opponentState: { lives: 2, handCount: 9 },
-            board: {
-                playerBoard: {
-                    meleeRow: { totalPower: 7, cards: [{ id: "1001", name: "Сослан", basePower: 7, targetRow: "Melee" }] },
-                    rangedRow: { totalPower: 0, cards: [] },
-                    siegeRow: { totalPower: 0, cards: [] },
-                    totalPower: 7
-                },
-                opponentBoard: {
-                    meleeRow: { totalPower: 4, cards: [{ id: "2001", name: "Уастырджи", basePower: 4, targetRow: "Melee" }] },
-                    rangedRow: { totalPower: 0, cards: [] },
-                    siegeRow: { totalPower: 0, cards: [] },
-                    totalPower: 4
-                }
-            }
-        };
-        saveStateToLocalStorage(currentState);
-    } else {
-        console.log("Загружено состояние из памяти:", currentState);
-    }
-
-    //вызов отрисовка с задержкой чтобы ДОМ успел подгрузить всё(НЕ ТРОГАТЬ)
-    setTimeout(() => {
-        renderGameState(currentState);
-    }, 100);
-});
-
-
-
-//ЛОГИКА ПОДСЧЕТА ОЧКОВ
+//ЛОГИКА ПОДСЧЕТА И ОБНОВЛЕНИЯ СЧЕТЧИКОВ
 function recalculateScores(state) {
-    //Очки в каждом ряду игрока (Авангард, Стрелки, Артиллерия)
-    state.board.playerBoard.meleeRow.totalPower = state.board.playerBoard.meleeRow.cards.reduce((sum, card) => sum + card.basePower, 0);
-    state.board.playerBoard.rangedRow.totalPower = state.board.playerBoard.rangedRow.cards.reduce((sum, card) => sum + card.basePower, 0);
-    state.board.playerBoard.siegeRow.totalPower = state.board.playerBoard.siegeRow.cards.reduce((sum, card) => sum + card.basePower, 0);
+    //считает силу рядов игрока
+    state.you.melee.power = state.you.melee.cards.reduce((sum, c) => sum + c.power, 0);
+    state.you.ranged.power = state.you.ranged.cards.reduce((sum, c) => sum + c.power, 0);
+    state.you.siege.power = state.you.siege.cards.reduce((sum, c) => sum + c.power, 0);
+    state.you.totalPower = state.you.melee.power + state.you.ranged.power + state.you.siege.power;
+    state.you.handCount = state.you.hand.length;
 
-    //Общий счет игрока (сумма всех 3 полей)
-    state.board.playerBoard.totalPower =
-        state.board.playerBoard.meleeRow.totalPower +
-        state.board.playerBoard.rangedRow.totalPower +
-        state.board.playerBoard.siegeRow.totalPower;
-
-
-    //То же самое для противника
-    state.board.opponentBoard.meleeRow.totalPower = state.board.opponentBoard.meleeRow.cards.reduce((sum, card) => sum + card.basePower, 0);
-    state.board.opponentBoard.rangedRow.totalPower = state.board.opponentBoard.rangedRow.cards.reduce((sum, card) => sum + card.basePower, 0);
-    state.board.opponentBoard.siegeRow.totalPower = state.board.opponentBoard.siegeRow.cards.reduce((sum, card) => sum + card.basePower, 0);
-
-    state.board.opponentBoard.totalPower =
-        state.board.opponentBoard.meleeRow.totalPower +
-        state.board.opponentBoard.rangedRow.totalPower +
-        state.board.opponentBoard.siegeRow.totalPower;
+    //считает силу рядов противника
+    state.opponent.melee.power = state.opponent.melee.cards.reduce((sum, c) => sum + c.power, 0);
+    state.opponent.ranged.power = state.opponent.ranged.cards.reduce((sum, c) => sum + c.power, 0);
+    state.opponent.siege.power = state.opponent.siege.cards.reduce((sum, c) => sum + c.power, 0);
+    state.opponent.totalPower = state.opponent.melee.power + state.opponent.ranged.power + state.opponent.siege.power;
 }
 
+function updateCounters(state) {
+    //синхронизация текстов и цифр на панелях
+    document.getElementById("you-lives").innerText = state.you.lives;
+    document.getElementById("you-totalPower").innerText = state.you.totalPower;
+    document.getElementById("you-deckCount").innerText = state.you.deckCount;
+    document.getElementById("you-handCount").innerText = state.you.handCount;
 
-//ГЛАВНАЯ ФУНКЦИЯ ОТРИСОВКИ
-//берет gameState и обновляет весь html: очки, жизни, колоду и ряды карт и тд тп
-function renderGameState(data) {
-    console.log("Отрисовка состояния:", data);
+    document.getElementById("opponent-lives").innerText = state.opponent.lives;
+    document.getElementById("opponent-totalPower").innerText = state.opponent.totalPower;
+    document.getElementById("opponent-handCount").innerText = state.opponent.handCount;
 
-    //пересчёт очков ПЕРЕД отрисовкой
-    recalculateScores(data);
+    // Очки рядов
+    document.getElementById("you-melee-power").innerText = state.you.melee.power;
+    document.getElementById("you-ranged-power").innerText = state.you.ranged.power;
+    document.getElementById("you-siege-power").innerText = state.you.siege.power;
 
-    //обновление счетчика игрока
-    document.getElementById("pl-total").innerText = data.board.playerBoard.totalPower;
-    document.getElementById("pl-lives").innerText = data.playerState.lives;
-    document.getElementById("pl-deck-count").innerText = data.playerState.deckCount;
-    document.getElementById("pl-hand-count").innerText = data.playerState.hand.length; //кол-во в руке
+    document.getElementById("opponent-melee-power").innerText = state.opponent.melee.power;
+    document.getElementById("opponent-ranged-power").innerText = state.opponent.ranged.power;
+    document.getElementById("opponent-siege-power").innerText = state.opponent.siege.power;
+}
 
-    //обновление счетчика противника
-    document.getElementById("opt-lives").innerText = data.opponentState.lives;
-    document.getElementById("opt-hand-count").innerText = data.opponentState.handCount;
-    document.getElementById("opt-total").innerText = data.board.opponentBoard.totalPower;
+//КОМПОНЕНТЫ ОТРИСОВКИ КАРТ
+function createCardHtml(card, isDraggable = false) {
+    const heroClass = card.isHero ? "hero-card" : "";
+    const dragAttribute = isDraggable ? 'draggable="true"' : '';
 
-    //отрисовка руки
-    const handContainer = document.getElementById("my-hand");
-    handContainer.innerHTML = ""; //очистка
-    data.playerState.hand.forEach(card => {
-        handContainer.appendChild(createCardElement(card, true));
+    let icon = "⚔️";
+    if (card.row === "Ranged") icon = "🏹";
+    if (card.row === "Siege") icon = "🔮";
+
+    return `
+        <div class="game-card ${heroClass}" id="card-${card.id}" ${dragAttribute} data-id="${card.id}">
+            <div class="card-power">${icon} ${card.power}</div>
+            <div class="card-name">${card.name}</div>
+        </div>
+    `;
+}
+
+//главная функция рендеринга поля
+function renderBoard(state) {
+    console.log("Отрисовка игрового поля...");
+
+    //Пересчитывает очки на основе массивов карт
+    recalculateScores(state);
+
+    //Обновляет текстовые интерфейсы
+    updateCounters(state);
+
+    //Отрисовывает карты в рядах (твоих и чужих)
+    const rowTypes = ['melee', 'ranged', 'siege'];
+    rowTypes.forEach(rowType => {
+        const myContainer = document.getElementById(`you-${rowType}-cards`);
+        if (myContainer) {
+            myContainer.innerHTML = state.you[rowType].cards.map(c => createCardHtml(c, false)).join('');
+        }
+
+        const optContainer = document.getElementById(`opponent-${rowType}-cards`);
+        if (optContainer) {
+            optContainer.innerHTML = state.opponent[rowType].cards.map(c => createCardHtml(c, false)).join('');
+        }
     });
 
-    //отрисовка полей
-    renderRowCards(".player-row.melee", data.board.playerBoard.meleeRow, "pl-score-melee");
-    renderRowCards(".player-row.ranged", data.board.playerBoard.rangedRow, "pl-score-ranged");
-    renderRowCards(".player-row.siege", data.board.playerBoard.siegeRow, "pl-score-siege");
+    //отрисовываем твою руку (карты можно перетаскивать — true)
+    const handContainer = document.getElementById("you-hand");
+    if (handContainer) {
+        handContainer.innerHTML = state.you.hand.map(c => createCardHtml(c, true)).join('');
+    }
 
-    renderRowCards(".opponent-row.melee", data.board.opponentBoard.meleeRow, "opt-score-melee");
-    renderRowCards(".opponent-row.ranged", data.board.opponentBoard.rangedRow, "opt-score-ranged");
-    renderRowCards(".opponent-row.siege", data.board.opponentBoard.siegeRow, "opt-score-siege");
-
+    //Перепривязываем события перетаскивания к новым элементам
     initDragAndDrop();
 }
 
-
-
-//вспомогательная функция для наполнения конкретного ряда картами
-function renderRowCards(rowSelector, rowData, scoreId) {
-    const rowElement = document.querySelector(rowSelector);
-    const cardsContainer = rowElement.querySelector(".row-cards-container");
-    document.getElementById(scoreId).innerText = rowData.totalPower;
-    cardsContainer.innerHTML = "";
-    rowData.cards.forEach(card => {
-        cardsContainer.appendChild(createCardElement(card, false)); //false - на поле карту двигать нельзя
-    });
-}
-
-//создает html элемент карты, шаблон, который мы используем везде
-function createCardElement(card, isDraggable) {
-    const cardDiv = document.createElement("div");
-    cardDiv.className = "game-card";
-    if (isDraggable) cardDiv.setAttribute("draggable", "true");
-    cardDiv.id = `card-${card.id}`;
-
-    let icon = "⚔️";
-    if (card.targetRow === "Ranged") icon = "🏹";
-    if (card.targetRow === "Siege") icon = "🔮";
-
-    cardDiv.innerHTML = `<div class="card-power">${icon} ${card.basePower}</div><div class="card-name">${card.name}</div>`;
-    return cardDiv;
-}
-
-//ЛОГИКА DRAG & DROP (Перетаскивание)
+//МЕХАНИКА DRAG & DROP
 function initDragAndDrop() {
     const cards = document.querySelectorAll('.game-card[draggable="true"]');
     const rows = document.querySelectorAll('.player-row');
 
-    //привязываем событие начала перетаскивания(хватаем карту)
     cards.forEach(card => {
         card.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', e.target.id); //запоминает ID карты
-            setTimeout(() => card.style.opacity = '0.4', 0); //делает прозрачной
+            e.dataTransfer.setData('text/plain', e.target.id);
+            setTimeout(() => card.style.opacity = '0.4', 0);
         });
         card.addEventListener('dragend', () => { card.style.opacity = '1'; });
     });
 
-    //обработка полей, куда можно бросить карту
     rows.forEach(row => {
-        row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drag-over'); });
-        row.addEventListener('dragleave', () => { row.classList.remove('drag-over'); });
+        row.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            row.classList.add('drag-over');
+        });
+        row.addEventListener('dragleave', () => {
+            row.classList.remove('drag-over');
+        });
 
-        //когда бросили карту
         row.addEventListener('drop', (e) => {
             e.preventDefault();
             row.classList.remove('drag-over');
 
             const cardId = e.dataTransfer.getData('text/plain');
             const pureCardId = cardId.replace('card-', '');
-            const targetRowName = row.getAttribute('data-row'); //получает ряд из html атрибута
+            const targetRowName = row.getAttribute('data-row'); // "Melee", "Ranged" или "Siege"
+            const targetRowKey = targetRowName.toLowerCase();
 
-            //локально обновляет массив руки и ряда
-            let currentState = loadStateFromLocalStorage();
-            const cardIndex = currentState.playerState.hand.findIndex(c => c.id === pureCardId);
+            let currentState = loadStateFromLocalStorage() || mockGameState;
+            const cardIndex = currentState.you.hand.findIndex(c => c.id === pureCardId);
 
             if (cardIndex !== -1) {
-                const card = currentState.playerState.hand[cardIndex];
-                currentState.playerState.hand.splice(cardIndex, 1); // Удаляем из руки
+                const card = currentState.you.hand[cardIndex];
 
-                //просто кладет карту в нужный ряд (очки посчитаются сами при рендере)
-                if (targetRowName === "Melee") currentState.board.playerBoard.meleeRow.cards.push(card);
-                else if (targetRowName === "Ranged") currentState.board.playerBoard.rangedRow.cards.push(card);
-                else if (targetRowName === "Siege") currentState.board.playerBoard.siegeRow.cards.push(card);
+                //перемещает карту из руки в выбранный ряд
+                currentState.you.hand.splice(cardIndex, 1);
+                card.row = targetRowName; //обновляет тип ряда у карты
+                currentState.you[targetRowKey].cards.push(card);
 
-                saveStateToLocalStorage(currentState); //сохранение
-                renderGameState(currentState); //перерисовываем (и очки пересчитаются!)
-                sendMoveToServer(pureCardId, targetRowName); //сообщает серверу о ходе
+                //сохраняем локально и перерисовываем поле
+                saveStateToLocalStorage(currentState);
+                renderBoard(currentState);
+
+                //отправляем ход на бэкенд-хаб
+                sendMoveToServer(pureCardId, targetRowName);
             }
         });
     });
 }
 
-//отправка команды серверу
 function sendMoveToServer(cardId, rowName) {
     console.log(`Отправка на сервер: Карта ${cardId} в ряд ${rowName}`);
-    connection.invoke("PlayCard", cardId, rowName)
-        .then(isSuccess => { if (!isSuccess) alert("Ход отклонен сервером!"); })
-        .catch(err => console.error("Ошибка метода PlayCard: ", err.toString()));
+    if (connection.state === signalR.HubConnectionState.Connected) {
+        connection.invoke("PlayCard", cardId, rowName)
+            .then(isSuccess => { if (!isSuccess) console.warn("Ход не одобрен сервером."); })
+            .catch(err => console.error("Ошибка метода PlayCard: ", err.toString()));
+    } else {
+        console.log("Хаб пока не подключен, ход обработан локально в моке.");
+    }
 }
+
+//СТАРТ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
+document.addEventListener("DOMContentLoaded", () => {
+    console.log("Интерфейс «Пир Нартов» инициализирован.");
+
+    //для чистых тестов мока можно раскомментировать строку ниже, чтобы сбрасывать кэш:
+    //localStorage.removeItem("nartsGameState");
+
+    let currentState = loadStateFromLocalStorage();
+    if (!currentState) {
+        currentState = mockGameState;
+        saveStateToLocalStorage(currentState);
+    }
+
+    //первичный рендер сцены
+    renderBoard(currentState);
+});
