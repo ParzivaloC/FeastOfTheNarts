@@ -182,26 +182,7 @@ namespace FeastOfTheNarts.Core.Services
         //==========================================================Проверка 
         private void GenerateDummyDeck(PlayerState state)
         {
-            int idOffset = state.PlayerId == Player1State.PlayerId ? 1000 : 2000;
-            int[] imgs = { 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }; // доступные картинки из wwwroot/images
-
-            for (int i = 1; i <= 20; i++)
-            {
-                var row = i % 3 == 0 ? CardRow.Melee : (i % 3 == 1 ? CardRow.Ranged : CardRow.Siege);
-
-                state.Deck.Add(new UnitCard
-                {
-                    Id = (idOffset + i).ToString(),
-                    Name = $"Нарт {i}",
-                    BasePower = Random.Shared.Next(1, 11),
-                    IsHero = i % 10 == 0,
-                    TargetRow = row,
-                    ImageUrl = $"/images/Pokrov_fullllly {imgs[i % imgs.Length]}.png"
-                });
-            }
-
-            // Именные карты "Пира Нартов" берём из каталога (cards.catalog.json),
-            // клонируя под каждого игрока (см. CloneCard)
+            
             state.Deck.AddRange(BuildCatalogCards());
         }
         //===========================================================
