@@ -22,7 +22,9 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
             _eventCards = [];
             _spellCards = [];
 
-            var json = File.ReadAllText("Data/cards.catalog.json");
+            var path = Path.Combine(AppContext.BaseDirectory, "Data", "cards.catalog.json");
+            var json = File.ReadAllText(path);
+
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
 
@@ -33,6 +35,7 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
                         Id = element.GetProperty("id").GetString()!,
                         Name = element.GetProperty("name").GetString()!,
                         Description = element.GetProperty("description").GetString()!,
+                        ImageUrl = element.TryGetProperty("imageUrl", out var imgU) ? imgU.GetString() ?? "" : "",
                         Faction = Enum.Parse<Faction>(element.GetProperty("faction").GetString()!),
                         BasePower = element.GetProperty("basePower").GetInt32(),
                         TargetRow = Enum.Parse<CardRow>(element.GetProperty("targetRow").GetString()!),
@@ -47,6 +50,7 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
                         Id = element.GetProperty("id").GetString()!,
                         Name = element.GetProperty("name").GetString()!,
                         Description = element.GetProperty("description").GetString()!,
+                        ImageUrl = element.TryGetProperty("imageUrl", out var imgE) ? imgE.GetString() ?? "" : "",
                         Faction = Enum.Parse<Faction>(element.GetProperty("faction").GetString()!),
                         Effect = Enum.Parse<EffectType>(element.GetProperty("effect").GetString()!)
                     });
@@ -58,6 +62,7 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
                         Id = element.GetProperty("id").GetString()!,
                         Name = element.GetProperty("name").GetString()!,
                         Description = element.GetProperty("description").GetString()!,
+                        ImageUrl = element.TryGetProperty("imageUrl", out var imgS) ? imgS.GetString() ?? "" : "",
                         Faction = Enum.Parse<Faction>(element.GetProperty("faction").GetString()!),
                         Effect = Enum.Parse<SpellEffect>(element.GetProperty("effect").GetString()!)
                     });

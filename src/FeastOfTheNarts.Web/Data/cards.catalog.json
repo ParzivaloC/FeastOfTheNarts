@@ -1,0 +1,84 @@
+{
+  "unitCards": [
+    {
+      "id": "hero_soslan",
+      "name": "Сослан",
+      "description": "Бесстрашный нарт, закалённый в волчьем молоке и расплавленном железе кузнецом Курдалагоном.",
+      "imageUrl": "/images/Pokrov_fullllly 1.png",
+      "faction": "Ahsartaggata",
+      "basePower": 10,
+      "targetRow": "Melee",
+      "isHero": true,
+      "ability": "SoslanImmunity"
+    },
+    {
+      "id": "hero_batradz",
+      "name": "Батрадз",
+      "description": "Стальной нарт, который в гневе раскаляется докрасна и становится неостановимым буйством природы.",
+      "imageUrl": "/images/Pokrov_fullllly 4.png",
+      "faction": "Ahsartaggata",
+      "basePower": 7,
+      "targetRow": "Melee",
+      "isHero": true,
+      "ability": "BatradzRage"
+    },
+    {
+      "id": "hero_khamyts",
+      "name": "Хамыц",
+      "description": "Брат Сослана, бесстрашный наездник и мастер внезапных кавалерийских атак.",
+      "imageUrl": "/images/Pokrov_fullllly 5.png",
+      "faction": "Borata",
+      "basePower": 6,
+      "targetRow": "Ranged",
+      "isHero": true,
+      "ability": "KhamytsRally"
+    },
+    {
+      "id": "hero_atsamaz",
+      "name": "Ацамаз",
+      "description": "Легендарный нартский музыкант: от его золотой свирели таяли ледники и пробуждались звери.",
+      "imageUrl": "/images/Pokrov_fullllly 6.png",
+      "faction": "Borata",
+      "basePower": 5,
+      "targetRow": "Ranged",
+      "isHero": true,
+      "ability": "AtsamazMelody"
+    }
+  ],
+  "eventCards": [
+    {
+      "id": "event_balsag_wheel",
+      "name": "Колесо Балсага",
+      "description": "Мифическое огненное колесо, покатившееся с небес по воле небожителей.",
+      "imageUrl": "/images/Pokrov_fullllly 7.png",
+      "faction": "Neutral",
+      "effect": "BalsagWheel"
+    },
+    {
+      "id": "event_shatana_wisdom",
+      "name": "Мудрость Шатаны",
+      "description": "Великая вещая матерь нартов, способная предотвратить любую беду.",
+      "imageUrl": "/images/Pokrov_fullllly 8.png",
+      "faction": "Neutral",
+      "effect": "ShatanaWisdom"
+    }
+  ],
+  "spellCards": [
+    {
+      "id": "spell_syrdon_theft",
+      "name": "Интрига Сырдона",
+      "description": "Главный трикстер нартских сказаний, мастер тайных похищений.",
+      "imageUrl": "/images/Pokrov_fullllly 9.png",
+      "faction": "Neutral",
+      "effect": "SyrdonTheft"
+    },
+    {
+      "id": "spell_soslans_knees",
+      "name": "Колени Сослана",
+      "description": "Единственное уязвимое место великого героя, до которого не дошло закалочное железо.",
+      "imageUrl": "/images/Pokrov_fullllly 10.png",
+      "faction": "Neutral",
+      "effect": "SoslansKnees"
+    }
+  ]
+}
