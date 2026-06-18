@@ -24,8 +24,8 @@ builder.Services.AddSignalR()
 
 builder.Services.AddSingleton<FeastOfTheNarts.Web.Services.MatchmakingService>();
 
-// Один реестр матчей на всё приложение (Singleton): его должны видеть все
-// запросы и все соединения, и он обязан помнить матчи между вызовами.
+//один реестр матчей на всё приложение (Singleton): его должны видеть все
+//запросы и все соединения, и он обязан помнить матчи между вызовами.
 builder.Services.AddSingleton<IMatchManager, MatchManager>();
 
 builder.Services.AddCors(options =>
@@ -49,13 +49,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
 app.UseCors("AllowFrontend");
-
-app.MapControllers();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");

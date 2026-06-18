@@ -1,4 +1,5 @@
 ﻿using FeastOfTheNarts.Core.Domain.Models;
+using FeastOfTheNarts.Core.Domain.RepositoryInterfaces;
 using Microsoft.AspNetCore.Identity;
 using System;
 using System.Collections.Generic;
@@ -8,32 +9,21 @@ using System.Text.Json;
 
 namespace FeastOfTheNarts.Core.Services
 {
-    public class JsonUserService
+    public class UserService
     {
-        private readonly string _filePath = "users.json";
         private readonly PasswordHasher<User> _passwordHasher = new();
+        private readonly IUserRepository _userRepository;
 
-
-        public List<User> GetAllUsers()
+        public UserService(IUserRepository userRepository)
         {
-            if (!File.Exists(_filePath)) return new List<User>();
-
-            try
-            {
-                var json = File.ReadAllText(_filePath);
-                return JsonSerializer.Deserialize<List<User>>(json) ?? new List<User>();
-            }
-            catch
-            {
-                // На случай, если файл поврежден или пуст
-                return new List<User>();
-            }
+            _userRepository = userRepository;
         }
 
+        public List<User> GetAllUsers() => _userRepository.GetAll();
 
         public bool RegisterUser(string username, string password, string email, string phone)
         {
-            var users = GetAllUsers();
+            var users = _userRepository.GetAll();
 
             //не занят ли логин или почта
             if (users.Any(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase)))
@@ -54,25 +44,18 @@ namespace FeastOfTheNarts.Core.Services
             
             newUser.PasswordHash = _passwordHasher.HashPassword(newUser, password);
 
-            users.Add(newUser);
+            _userRepository.AddUser(newUser);
 
-
-            var json = JsonSerializer.Serialize(users, new JsonSerializerOptions { WriteIndented = true });
-            File.WriteAllText(_filePath, json);
             return true;
         }
 
-        //проверка
-        public User? VerifyUser(string username, string password)
+        //проверка входа по email
+        public User? VerifyUser(string email, string password)
         {
-            var users = GetAllUsers();
-            var user = users.FirstOrDefault(u => u.Username.Equals(username, StringComparison.OrdinalIgnoreCase));
-
+            var user = _userRepository.GetByEmail(email);
             if (user == null) return null;
 
-            
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
-
             return result == PasswordVerificationResult.Success ? user : null;
         }
     }

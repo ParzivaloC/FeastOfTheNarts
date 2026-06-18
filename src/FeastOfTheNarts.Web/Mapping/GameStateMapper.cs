@@ -32,9 +32,9 @@ namespace FeastOfTheNarts.Web.Mapping
         }
         private static string? GetResultFor(GameEngine engine, string viewerId)
         {
-            if (engine.Phase != GamePhase.Finished) return null;
-            if (engine.WinnerId == viewerId) return "Draw";
-            return engine.WinnerId == viewerId ? "Win" : "Loss";
+            if (engine.Phase != GamePhase.Finished) return null; // матч ещё идёт
+            if (engine.WinnerId == null) return "Draw";          // ничья — победителя нет
+            return engine.WinnerId == viewerId ? "Win" : "Loss"; // ты победитель или нет
         }
 
         // ВАЖНО: при сборке данных для противника НЕ включаем его руку (includeHand: false),

@@ -31,7 +31,7 @@ namespace FeastOfTheNarts.Web.Hubs
                 return;
             }
 
-            engine.StartMatch();
+            lock (engine.SyncRoot) { engine.StartMatch(); }
             await BroadcastState(engine);   // оба игрока получают свой стартовый снимок
         }
 
@@ -41,7 +41,7 @@ namespace FeastOfTheNarts.Web.Hubs
             if (engine == null) return;
             if (!Enum.TryParse<CardRow>(row, out var targetRow)) return;
 
-            engine.PlayCard(PlayerId, cardId, targetRow); // движок сам проверит ход/фазу
+            lock (engine.SyncRoot) { engine.PlayCard(PlayerId, cardId, targetRow); } // движок сам проверит ход/фазу
             await BroadcastState(engine);
         }
 
@@ -50,7 +50,7 @@ namespace FeastOfTheNarts.Web.Hubs
             var engine = CurrentEngine();
             if (engine == null) return;
 
-            engine.PassTurn(PlayerId);
+            lock (engine.SyncRoot) { engine.PassTurn(PlayerId); }
             await BroadcastState(engine);
         }
 
@@ -59,11 +59,26 @@ namespace FeastOfTheNarts.Web.Hubs
             var left = _matchmaking.Leave(Context.ConnectionId);
             if (left != null)
             {
-                foreach (var p in left.Value.Parts)
-                    if (p.ConnectionId != Context.ConnectionId)
-                        await Clients.Client(p.ConnectionId).SendAsync("OpponentLeft");
-
                 _matches.RemoveMatch(left.Value.MatchId);
+
+                // Оставшегося игрока уведомляем и возвращаем в комнату ожидания (снова в очередь)
+                foreach (var p in left.Value.Parts)
+                {
+                    if (p.ConnectionId == Context.ConnectionId) continue; // это ушедший игрок
+
+                    await Clients.Client(p.ConnectionId).SendAsync("OpponentLeft");
+
+                    var engine = _matchmaking.TryJoin(p.ConnectionId, p.PlayerId);
+                    if (engine == null)
+                    {
+                        await Clients.Client(p.ConnectionId).SendAsync("Waiting");
+                    }
+                    else
+                    {
+                        lock (engine.SyncRoot) { engine.StartMatch(); }
+                        await BroadcastState(engine);
+                    }
+                }
             }
             await base.OnDisconnectedAsync(exception);
         }
