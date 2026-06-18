@@ -12,7 +12,7 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
     public class UserRepositoryJSON : IUserRepository
     {
         private readonly List<User> _users;
-        private const string _filepath = "../Data/users.json";
+        private static readonly string _filepath = Path.Combine(AppContext.BaseDirectory, "Data", "users.json");
 
         public UserRepositoryJSON()
         {
@@ -59,8 +59,12 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
         {
             List<User> users = [];
 
+            var dir = Path.GetDirectoryName(_filepath);
+            if (!string.IsNullOrEmpty(dir))
+                Directory.CreateDirectory(dir);
+
             if (!File.Exists(_filepath))
-                File.Create(_filepath).Close();
+                return users;
 
             string json = File.ReadAllText(_filepath);
             if (!string.IsNullOrEmpty(json))
