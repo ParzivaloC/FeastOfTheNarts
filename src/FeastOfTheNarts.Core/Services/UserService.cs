@@ -49,12 +49,12 @@ namespace FeastOfTheNarts.Core.Services
             return true;
         }
 
-        //проверка входа по email
+        //проверка
         public User? VerifyUser(string email, string password)
         {
             var user = _userRepository.GetByEmail(email);
             if (user == null) return null;
-
+            
             var result = _passwordHasher.VerifyHashedPassword(user, user.PasswordHash, password);
             return result == PasswordVerificationResult.Success ? user : null;
         }

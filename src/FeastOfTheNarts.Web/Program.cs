@@ -1,16 +1,24 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
-using FeastOfTheNarts.Core.Services;
 using FeastOfTheNarts.Web.Hubs;
+using FeastOfTheNarts.Core.Services;
+using FeastOfTheNarts.Core.Domain.RepositoryInterfaces;
+using FeastOfTheNarts.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.AddSingleton<JsonUserService>();
+// Регистрация репозитория пользователей
+builder.Services.AddSingleton<IUserRepository, UserRepositoryJSON>();
+
+// Регистрация репозитория для карточек
+builder.Services.AddSingleton<ICardRepository, CardRepository>();
+
+builder.Services.AddSingleton<UserService>();
 
 builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
     .AddCookie(options =>
     {
-        // Если игрок попытается зайти на защищенную страницу игры без логина,
-        // его автоматически перенаправит сюда:
+        //если игрок попытается зайти на защищенную страницу игры без логина,
+        //его автоматически перенаправит сюда:
         options.LoginPath = "/Account/Login";
     });
 
@@ -28,6 +36,7 @@ builder.Services.AddSingleton<FeastOfTheNarts.Web.Services.MatchmakingService>()
 //запросы и все соединения, и он обязан помнить матчи между вызовами.
 builder.Services.AddSingleton<IMatchManager, MatchManager>();
 
+// Настройки для фронта
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend", policy =>
@@ -103,6 +112,6 @@ app.MapHub<GameHub>("/gamehub");
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Game}/{action=Index}/{id?}");
+    pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();

@@ -146,7 +146,7 @@ namespace FeastOfTheNarts.Core.Services
                 case HeroAbility.AtsamazMelody:
                     ResolveAtsamazMelody(unit, board);
                     break;
-                    // SoslanImmunity — пассивная, на выход не реагирует
+                // SoslanImmunity — пассивная, на выход не реагирует
             }
         }
 
