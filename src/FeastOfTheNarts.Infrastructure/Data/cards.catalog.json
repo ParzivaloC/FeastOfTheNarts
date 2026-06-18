@@ -35,11 +35,11 @@
     },
     {
       "id": "hero_atsamaz",
-      "name": "Ацамаз",
-      "description": "Легендарный нартский музыкант: от его золотой свирели таяли ледники и пробуждались звери.",
-      "imageUrl": "/images/photo_2026-06-17_22-49-25",
+      "name": "Галагон",
+      "description": "Повелитель ветров.",
+      "imageUrl": "/images/Pokrov_fullllly 1.png",
       "faction": "Borata",
-      "basePower": 5,
+      "basePower": 19,
       "targetRow": "Ranged",
       "isHero": true,
       "ability": "AtsamazMelody"
