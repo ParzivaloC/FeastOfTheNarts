@@ -1,18 +1,90 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using FeastOfTheNarts.Core.Domain.Enums;
+using FeastOfTheNarts.Core.Services;
+using FeastOfTheNarts.Web.Mapping;
+using FeastOfTheNarts.Web.Services;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
 
 namespace FeastOfTheNarts.Web.Hubs
 {
+    [Authorize] // в хаб пускаем только залогиненных
     public class GameHub : Hub
     {
-        public async Task JoinMatch(string playerId)
+        private readonly IMatchManager _matches;
+        private readonly MatchmakingService _matchmaking;
+
+        public GameHub(IMatchManager matches, MatchmakingService matchmaking)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, "waiting_room");
-            await Clients.Caller.SendAsync("ReceiveMessage", "Система", "Вы присоединились к комнате ожидания.");
+            _matches = matches;
+            _matchmaking = matchmaking;
+        }
+
+        // Id игрока берём из авторизации, а не из параметра
+        private string PlayerId => Context.User?.Identity?.Name ?? Context.ConnectionId;
+
+        public async Task FindGame()
+        {
+            var engine = _matchmaking.TryJoin(Context.ConnectionId, PlayerId);
+            if (engine == null)
+            {
+                await Clients.Caller.SendAsync("Waiting");
+                return;
+            }
+
+            engine.StartMatch();
+            await BroadcastState(engine);   // оба игрока получают свой стартовый снимок
+        }
+
+        public async Task PlayCard(string cardId, string row)
+        {
+            var engine = CurrentEngine();
+            if (engine == null) return;
+            if (!Enum.TryParse<CardRow>(row, out var targetRow)) return;
+
+            engine.PlayCard(PlayerId, cardId, targetRow); // движок сам проверит ход/фазу
+            await BroadcastState(engine);
+        }
+
+        public async Task Pass()
+        {
+            var engine = CurrentEngine();
+            if (engine == null) return;
+
+            engine.PassTurn(PlayerId);
+            await BroadcastState(engine);
         }
 
         public override async Task OnDisconnectedAsync(Exception? exception)
         {
+            var left = _matchmaking.Leave(Context.ConnectionId);
+            if (left != null)
+            {
+                foreach (var p in left.Value.Parts)
+                    if (p.ConnectionId != Context.ConnectionId)
+                        await Clients.Client(p.ConnectionId).SendAsync("OpponentLeft");
+
+                _matches.RemoveMatch(left.Value.MatchId);
+            }
             await base.OnDisconnectedAsync(exception);
+        }
+
+        private GameEngine? CurrentEngine()
+        {
+            var matchId = _matchmaking.GetMatchId(Context.ConnectionId);
+            return matchId == null ? null : _matches.GetMatch(matchId);
+        }
+
+        // Каждому игроку — СВОЙ снимок (рука соперника скрыта)
+        private async Task BroadcastState(GameEngine engine)
+        {
+            var parts = _matchmaking.GetParticipants(engine.MatchId);
+            if (parts == null) return;
+
+            foreach (var p in parts)
+            {
+                var state = GameStateMapper.BuildFor(engine, p.PlayerId);
+                await Clients.Client(p.ConnectionId).SendAsync("ReceiveState", state);
+            }
         }
     }
 }

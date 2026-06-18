@@ -5,11 +5,15 @@
 }
 
 <div class="text-center w-100">
-    <h1 class="display-2 text-warning mb-5 fw-bold font-monospace" style="letter-spacing: 5px;">ПИР НА РТОВ</h1>
+    @if (TempData["AuthError"] != null)
+    {
+        <div class="alert alert-danger mx-auto" style="max-width: 400px;">@TempData["AuthError"]</div>
+    }
+    <h1 class="display-2 text-warning mb-5 fw-bold font-monospace" style="letter-spacing: 5px;">ПИР НАРТОВ</h1>
 
     <div class="d-grid gap-4 col-10 col-md-4 mx-auto">
-        <button id="playBtn" class="btn btn-warning btn-lg py-3 fw-bold text-dark shadow fs-4">▶ ИГРАТЬ</button>
-        <button class="btn btn-outline-secondary btn-lg py-2 fs-5">⚙ Настройки</button>
+        <button id="playBtn" class="btn btn-warning btn-lg py-3 fw-bold text-dark shadow fs-4">▶️ ИГРАТЬ</button>
+        <button class="btn btn-outline-secondary btn-lg py-2 fs-5">⚙️ Настройки</button>
     </div>
 </div>
 
@@ -21,11 +25,11 @@
             //если залогинен - летим в игру
             window.location.href = "/Game";
         } else {
-            //если нет — меняем скрытый инпут, чтобы после модалки перекинуло в игру
+            //если нет - меняем скрытый инпут, чтобы после модалки перекинуло в игру
             if (typeof setReturnUrl === "function") {
                 setReturnUrl('/Game');
             }
-            //открывает модалку из _Layout
+            //открывает модалку из Layout
             const myModal = new bootstrap.Modal(document.getElementById('authModal'));
             myModal.show();
         }

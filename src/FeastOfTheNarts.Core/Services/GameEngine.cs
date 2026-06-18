@@ -13,6 +13,11 @@ namespace FeastOfTheNarts.Core.Services
 
         public string CurrentPlayerId { get; private set; }
 
+        public GamePhase Phase { get; private set; } = GamePhase.NotStarted;
+
+        // Id победителя. null — если ничья или матч ещё не окончен.
+        public string? WinnerId { get; private set; }
+
 
         public GameEngine(string matchId, string player1Id, string player2Id)
         {
@@ -27,7 +32,13 @@ namespace FeastOfTheNarts.Core.Services
 
         public void StartMatch()
         {
-            
+            /////////////////////////////Проверка 
+            GenerateDummyDeck(Player1State);
+            GenerateDummyDeck(Player2State);
+
+
+            ////////////
+
 
             Shuffle(Player1State.Deck);
             Shuffle(Player2State.Deck);
@@ -37,6 +48,8 @@ namespace FeastOfTheNarts.Core.Services
                 Player1State.DrawCard();
                 Player2State.DrawCard();
             }
+
+            Phase = GamePhase.InProgress; // карты розданы — матч идёт
         }
 
         // Перемешивание колоды (Фишер–Йейтс)
@@ -49,11 +62,12 @@ namespace FeastOfTheNarts.Core.Services
             }
         }
 
-        
+
 
 
         public bool PlayCard(string playerId, string cardId, CardRow targetRow)
         {
+            if (Phase != GamePhase.InProgress) return false; // нельзя ходить, пока матч не идёт / уже окончен
             if (playerId != CurrentPlayerId) return false;// проверка, что ходит текущий игрок
 
             // получаем состояние игрока и его игровое поле (определяем один раз, чтобы они не разъезжались)
@@ -68,10 +82,10 @@ namespace FeastOfTheNarts.Core.Services
             // Разные типы карт играются по-разному
             bool played = card switch
             {
-                UnitCard unit   => PlayUnit(unit, board, targetRow),
-                EventCard ev    => PlayEvent(ev, state),
+                UnitCard unit => PlayUnit(unit, board, targetRow),
+                EventCard ev => PlayEvent(ev, state),
                 SpellCard spell => PlaySpell(spell, state, enemyState),
-                _               => false
+                _ => false
             };
 
             if (played)
@@ -348,6 +362,23 @@ namespace FeastOfTheNarts.Core.Services
 
             Player1State.HasPassed = false;
             Player2State.HasPassed = false;
+
+            CheckForGameEnd();
+        }
+
+        // Проверяет, не закончился ли матч после потери жизней
+        private void CheckForGameEnd()
+        {
+            bool p1Dead = Player1State.Lives <= 0;
+            bool p2Dead = Player2State.Lives <= 0;
+
+            if (!p1Dead && !p2Dead) return; // оба живы — матч продолжается
+
+            Phase = GamePhase.Finished;
+
+            if (p1Dead && p2Dead) WinnerId = null;                 // ничья — оба проиграли в один раунд
+            else if (p2Dead) WinnerId = Player1State.PlayerId; // выжил первый
+            else WinnerId = Player2State.PlayerId; // выжил второй
         }
 
         public void ClearBoard()
@@ -374,6 +405,8 @@ namespace FeastOfTheNarts.Core.Services
 
         public void PassTurn(string playerId)
         {
+            if (Phase != GamePhase.InProgress) return;
+
             if (playerId == Player1State.PlayerId)
             {
                 Player1State.HasPassed = true;
