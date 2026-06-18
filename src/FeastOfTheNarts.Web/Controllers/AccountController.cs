@@ -26,21 +26,21 @@ namespace FeastOfTheNarts.Web.Controllers
         {
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
             {
-                ViewBag.Error = "Логин и пароль обязательны!";
+                TempData["AuthError"] = "Логин и пароль обязательны!";
                 return RedirectToAction("Index", "Home");
             }
 
-            //передает пустую строку вместо телефона, так как мы от него отказались
+            //передает пустую строку вместо телефона
             bool isRegistered = _userService.RegisterUser(username, password, email, "");
 
             if (!isRegistered)
             {
-                ViewBag.Error = "Пользователь с таким логином или почтой уже существует!";
+                TempData["AuthError"] = "Пользователь с таким логином или почтой уже существует!";
                 return RedirectToAction("Index", "Home");
             }
 
-            //АВТОМАТИЧЕСКИЙ ВХОД ПОСЛЕ УСПЕШНОЙ РЕГИСТРАЦИИ
-            var user = _userService.VerifyUser(username, password);
+            //авто вход после рега
+            var user = _userService.VerifyUser(email, password);
             if (user != null)
             {
                 var claims = new List<Claim>
@@ -51,7 +51,7 @@ namespace FeastOfTheNarts.Web.Controllers
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                //запись куки(временное или постоянное решение: На усмотрение Амридину)
+                //запись куки(временное или постоянное решение: на усмотрение Амридину)
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
             }
 
@@ -66,13 +66,13 @@ namespace FeastOfTheNarts.Web.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Login(string username, string password, string returnUrl = "/")
+        public async Task<IActionResult> Login(string email, string password, string returnUrl = "/")
         {
-            var user = _userService.VerifyUser(username, password);
+            var user = _userService.VerifyUser(email, password);
 
             if (user == null)
             {
-                ViewBag.Error = "Неверный логин или пароль!";
+                TempData["AuthError"] = "Неверная почта или пароль!";
                 return RedirectToAction("Index", "Home");
             }
 

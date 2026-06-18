@@ -93,6 +93,7 @@
         </div>
     </footer>
 
+    
     <div class="modal fade" id="authModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 400px;">
             <div class="modal-content card-auth p-3 shadow-lg">
@@ -105,8 +106,8 @@
                     <form action="/Account/Login" method="POST">
                         <input type="hidden" name="returnUrl" class="dynamic-return-url" value="/" />
                         <div class="mb-3">
-                            <label class="form-label text-white-50">Логин</label>
-                            <input type="text" class="form-control" name="username" required>
+                            <label class="form-label text-white-50">Почта</label>
+                            <input type="email" class="form-control" name="email" required>
                         </div>
                         <div class="mb-3">
                             <label class="form-label text-white-50">Пароль</label>
@@ -156,6 +157,8 @@
         </div>
     </div>
 
+    
+
     @if (User.Identity != null && User.Identity.IsAuthenticated)
     {
         <div class="modal fade" id="profileModal" tabindex="-1" aria-hidden="true">
@@ -185,7 +188,7 @@
         document.querySelectorAll('.dynamic-return-url').forEach(input => input.value = url);
         }
 
-        //если нажали на "Log In" вверху - остаемся на текущей странице
+        //если нажал на "Log In" вверху то останется на текущей странице
         document.getElementById('headerLoginBtn')?.addEventListener('click', () => setReturnUrl('/'));
     </script>
 </body>

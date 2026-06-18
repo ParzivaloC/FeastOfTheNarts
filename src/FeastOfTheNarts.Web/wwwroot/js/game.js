@@ -1,95 +1,74 @@
-﻿//МОК СОСТОЯНИЯ ИГРЫ (Единый camelCase контракт) тестовый
-const mockGameState = {
-    you: {
-        lives: 2,
-        totalPower: 14,
-        handCount: 3,
-        deckCount: 22,
-        melee: {
-            power: 6, cards: [
-                { id: "card-1", name: "Уастырджи", power: 6, row: "Melee", isHero: true }
-            ]
-        },
-        ranged: {
-            power: 8, cards: [
-                { id: "card-2", name: "Лучник Нартов", power: 4, row: "Ranged", isHero: false },
-                { id: "card-3", name: "Старейшина", power: 4, row: "Ranged", isHero: false }
-            ]
-        },
-        siege: { power: 0, cards: [] },
-        hand: [
-            { id: "card-4", name: "Всадник", power: 5, row: "Melee", isHero: false },
-            { id: "card-5", name: "Нартский Пир", power: 3, row: "Siege", isHero: false }
-        ]
-    },
-    opponent: {
-        lives: 1,
-        totalPower: 5,
-        handCount: 4,
-        deckCount: 24,
-        melee: {
-            power: 5, cards: [
-                { id: "card-6", name: "Вражеский воин", power: 5, row: "Melee", isHero: false }
-            ]
-        },
-        ranged: { power: 0, cards: [] },
-        siege: { power: 0, cards: [] }
-    }
-};
+﻿//игровой клиент
+//рисует то, что прислал хаб,
+// и отправляет действия (сыграть карту / пас) без мока
 
-
-
-//ИНИЦИАЛИЗАЦИЯ SIGNALR СЕРВЕРА
 const connection = new signalR.HubConnectionBuilder()
     .withUrl("/gamehub")
     .build();
 
+//последнее состояние, присланное сервером
+let currentState = null;
+
+
+
+//Запуск соединения и поиск игры!!!!!!!!!
 connection.start()
     .then(() => {
-        console.log("Успешно подключено к игровому серверу Пир Нартов!");
-        connection.invoke("JoinMatch", "Gin Sakai");
+        console.log("Подключено к серверу Пир Нартов");
+        showOverlay("Поиск соперника...", false);
+        connection.invoke("FindGame");
     })
-    .catch(err => console.error("Ошибка подключения SignalR: ", err.toString()));
+    .catch(err => {
+        console.error("Ошибка подключения SignalR:", err.toString());
+        showOverlay("Не удалось подключиться к серверу", true);
+    });
 
-//слушатель обновлений от сервера
-connection.on("UpdateGameState", (gameState) => {
-    console.log("Получены реальные данные от движка:", gameState);
-    saveStateToLocalStorage(gameState);
-    renderBoard(gameState);
+
+
+//События от сервера!!!!!!!!!!!!!!
+connection.on("Waiting", () => showOverlay("Ожидание соперника...", false));
+
+connection.on("ReceiveState", (state) => {
+    currentState = state;
+    hideOverlay();
+    renderBoard(state);
+    updateTurnBanner(state);
+    if (state.phase === "Finished") showResult(state.result);
 });
 
+connection.on("OpponentLeft", () => showOverlay("Соперник вышел. Ищем нового соперника...", false));
 
 
-//РАБОТА С ЛОКАЛЬНЫМ ХРАНИЛИЩЕМ (Local Storage)
-function saveStateToLocalStorage(state) {
-    localStorage.setItem("nartsGameState", JSON.stringify(state));
+
+//Отрисовка карты!!!!!!!!!!!!!!!!!!!!
+function createCardHtml(card, isDraggable = false) {
+    const heroClass = card.isHero ? "hero-card" : "";
+    const dragAttr = isDraggable ? 'draggable="true"' : '';
+
+    let icon = "⚔️";
+    if (card.row === "Ranged") icon = "🏹";
+    if (card.row === "Siege") icon = "🔮";
+
+    const img = card.imageUrl
+        ? `<img class="card-img" src="${encodeURI(card.imageUrl)}" alt="">`
+        : '';
+
+    return `
+        <div class="game-card ${heroClass}" id="card-${card.id}" ${dragAttr} data-id="${card.id}">
+            ${img}
+            <div class="card-power">${icon} ${card.power}</div>
+            <div class="card-name">${card.name}</div>
+        </div>`;
 }
 
-function loadStateFromLocalStorage() {
-    const saved = localStorage.getItem("nartsGameState");
-    return saved ? JSON.parse(saved) : null;
-}
 
 
 
-//ЛОГИКА ПОДСЧЕТА И ОБНОВЛЕНИЯ СЧЕТЧИКОВ
-function recalculateScores(state) {
-    //считает силу рядов игрока
-    state.you.melee.power = state.you.melee.cards.reduce((sum, c) => sum + c.power, 0);
-    state.you.ranged.power = state.you.ranged.cards.reduce((sum, c) => sum + c.power, 0);
-    state.you.siege.power = state.you.siege.cards.reduce((sum, c) => sum + c.power, 0);
-    state.you.totalPower = state.you.melee.power + state.you.ranged.power + state.you.siege.power;
-    state.you.handCount = state.you.hand.length;
-
-    //считает силу рядов противника
-    state.opponent.melee.power = state.opponent.melee.cards.reduce((sum, c) => sum + c.power, 0);
-    state.opponent.ranged.power = state.opponent.ranged.cards.reduce((sum, c) => sum + c.power, 0);
-    state.opponent.siege.power = state.opponent.siege.cards.reduce((sum, c) => sum + c.power, 0);
-    state.opponent.totalPower = state.opponent.melee.power + state.opponent.ranged.power + state.opponent.siege.power;
-}
-
+//Обновление счётчиков (значения берётся прямо из состояния сервера)
 function updateCounters(state) {
-    //синхронизация текстов и цифр на панелях
+    document.getElementById("you-name").innerText = state.you.displayName || "Игрок";
+    document.getElementById("opponent-name").innerText = state.opponent.displayName || "Противник";
+
     document.getElementById("you-lives").innerText = state.you.lives;
     document.getElementById("you-totalPower").innerText = state.you.totalPower;
     document.getElementById("you-deckCount").innerText = state.you.deckCount;
@@ -99,7 +78,6 @@ function updateCounters(state) {
     document.getElementById("opponent-totalPower").innerText = state.opponent.totalPower;
     document.getElementById("opponent-handCount").innerText = state.opponent.handCount;
 
-    // Очки рядов
     document.getElementById("you-melee-power").innerText = state.you.melee.power;
     document.getElementById("you-ranged-power").innerText = state.you.ranged.power;
     document.getElementById("you-siege-power").innerText = state.you.siege.power;
@@ -109,134 +87,117 @@ function updateCounters(state) {
     document.getElementById("opponent-siege-power").innerText = state.opponent.siege.power;
 }
 
-//КОМПОНЕНТЫ ОТРИСОВКИ КАРТ
-function createCardHtml(card, isDraggable = false) {
-    const heroClass = card.isHero ? "hero-card" : "";
-    const dragAttribute = isDraggable ? 'draggable="true"' : '';
 
-    let icon = "⚔️";
-    if (card.row === "Ranged") icon = "🏹";
-    if (card.row === "Siege") icon = "🔮";
 
-    return `
-        <div class="game-card ${heroClass}" id="card-${card.id}" ${dragAttribute} data-id="${card.id}">
-            <div class="card-power">${icon} ${card.power}</div>
-            <div class="card-name">${card.name}</div>
-        </div>
-    `;
-}
 
-//главная функция рендеринга поля
+//Главная отрисовка поля!!!!!!!!!!!!!!!
 function renderBoard(state) {
-    console.log("Отрисовка игрового поля...");
-
-    //Пересчитывает очки на основе массивов карт
-    recalculateScores(state);
-
-    //Обновляет текстовые интерфейсы
     updateCounters(state);
 
-    //Отрисовывает карты в рядах (твоих и чужих)
-    const rowTypes = ['melee', 'ranged', 'siege'];
-    rowTypes.forEach(rowType => {
-        const myContainer = document.getElementById(`you-${rowType}-cards`);
-        if (myContainer) {
-            myContainer.innerHTML = state.you[rowType].cards.map(c => createCardHtml(c, false)).join('');
-        }
+    ['melee', 'ranged', 'siege'].forEach(rowType => {
+        const mine = document.getElementById(`you-${rowType}-cards`);
+        if (mine) mine.innerHTML = state.you[rowType].cards.map(c => createCardHtml(c, false)).join('');
 
-        const optContainer = document.getElementById(`opponent-${rowType}-cards`);
-        if (optContainer) {
-            optContainer.innerHTML = state.opponent[rowType].cards.map(c => createCardHtml(c, false)).join('');
-        }
+        const opp = document.getElementById(`opponent-${rowType}-cards`);
+        if (opp) opp.innerHTML = state.opponent[rowType].cards.map(c => createCardHtml(c, false)).join('');
     });
 
-    //отрисовываем твою руку (карты можно перетаскивать — true)
-    const handContainer = document.getElementById("you-hand");
-    if (handContainer) {
-        handContainer.innerHTML = state.you.hand.map(c => createCardHtml(c, true)).join('');
-    }
+    //свою руку можно перетаскивать
+    const hand = document.getElementById("you-hand");
+    if (hand) hand.innerHTML = state.you.hand.map(c => createCardHtml(c, true)).join('');
 
-    //Перепривязываем события перетаскивания к новым элементам
     initDragAndDrop();
 }
 
-//МЕХАНИКА DRAG & DROP
-function initDragAndDrop() {
-    const cards = document.querySelectorAll('.game-card[draggable="true"]');
-    const rows = document.querySelectorAll('.player-row');
 
-    cards.forEach(card => {
+
+
+//Drag & Drop: на дроп отправляет ход на сервер!!!!!!!!!!!!!!!!!!!!!!
+function initDragAndDrop() {
+    document.querySelectorAll('.game-card[draggable="true"]').forEach(card => {
         card.addEventListener('dragstart', (e) => {
-            e.dataTransfer.setData('text/plain', e.target.id);
+            e.dataTransfer.setData('text/plain', card.dataset.id);
             setTimeout(() => card.style.opacity = '0.4', 0);
         });
-        card.addEventListener('dragend', () => { card.style.opacity = '1'; });
+        card.addEventListener('dragend', () => card.style.opacity = '1');
     });
 
-    rows.forEach(row => {
-        row.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            row.classList.add('drag-over');
-        });
-        row.addEventListener('dragleave', () => {
-            row.classList.remove('drag-over');
-        });
+    document.querySelectorAll('.player-row').forEach(row => {
+        row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drag-over'); });
+        row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
 
         row.addEventListener('drop', (e) => {
             e.preventDefault();
             row.classList.remove('drag-over');
 
+            if (!currentState || !currentState.isYourTurn) return; //не твой ход
+
             const cardId = e.dataTransfer.getData('text/plain');
-            const pureCardId = cardId.replace('card-', '');
-            const targetRowName = row.getAttribute('data-row'); // "Melee", "Ranged" или "Siege"
-            const targetRowKey = targetRowName.toLowerCase();
+            const rowName = row.getAttribute('data-row'); //Melee / Ranged / Siege
 
-            let currentState = loadStateFromLocalStorage() || mockGameState;
-            const cardIndex = currentState.you.hand.findIndex(c => c.id === pureCardId);
-
-            if (cardIndex !== -1) {
-                const card = currentState.you.hand[cardIndex];
-
-                //перемещает карту из руки в выбранный ряд
-                currentState.you.hand.splice(cardIndex, 1);
-                card.row = targetRowName; //обновляет тип ряда у карты
-                currentState.you[targetRowKey].cards.push(card);
-
-                //сохраняем локально и перерисовываем поле
-                saveStateToLocalStorage(currentState);
-                renderBoard(currentState);
-
-                //отправляем ход на бэкенд-хаб
-                sendMoveToServer(pureCardId, targetRowName);
-            }
+            //локально не двигает: сервер пришлёт ReceiveState и перерисует поле!!!!
+            connection.invoke("PlayCard", cardId, rowName)
+                .catch(err => console.error("Ошибка PlayCard:", err.toString()));
         });
     });
 }
 
-function sendMoveToServer(cardId, rowName) {
-    console.log(`Отправка на сервер: Карта ${cardId} в ряд ${rowName}`);
-    if (connection.state === signalR.HubConnectionState.Connected) {
-        connection.invoke("PlayCard", cardId, rowName)
-            .then(isSuccess => { if (!isSuccess) console.warn("Ход не одобрен сервером."); })
-            .catch(err => console.error("Ошибка метода PlayCard: ", err.toString()));
-    } else {
-        console.log("Хаб пока не подключен, ход обработан локально в моке.");
-    }
+
+
+//кнопка пас!!!!!!!!!!!
+const passBtn = document.getElementById("pass-btn");
+if (passBtn) {
+    passBtn.addEventListener("click", () => {
+        if (currentState && currentState.isYourTurn) {
+            connection.invoke("Pass").catch(err => console.error("Ошибка Pass:", err.toString()));
+        }
+    });
 }
 
-//СТАРТ ПРИ ЗАГРУЗКЕ СТРАНИЦЫ
-document.addEventListener("DOMContentLoaded", () => {
-    console.log("Интерфейс «Пир Нартов» инициализирован.");
 
-    //для чистых тестов мока можно раскомментировать строку ниже, чтобы сбрасывать кэш:
-    //localStorage.removeItem("nartsGameState");
 
-    let currentState = loadStateFromLocalStorage();
-    if (!currentState) {
-        currentState = mockGameState;
-        saveStateToLocalStorage(currentState);
+//индикатор чей ход сейчас
+function updateTurnBanner(state) {
+    let banner = document.getElementById("turn-banner");
+    if (!banner) {
+        banner = document.createElement("div");
+        banner.id = "turn-banner";
+        banner.style.cssText = "position:fixed;top:10px;left:50%;transform:translateX(-50%);" +
+            "padding:8px 20px;border-radius:8px;font-weight:bold;z-index:1500;color:#fff;";
+        document.body.appendChild(banner);
     }
+    banner.textContent = state.isYourTurn ? "Ваш ход" : "Ход соперника";
+    banner.style.background = state.isYourTurn ? "#2e7d32" : "#555";
+}
 
-    //первичный рендер сцены
-    renderBoard(currentState);
-});
+
+
+//Оверлей для ожидания и конца игры!!!!!!!!!!!
+function showOverlay(message, withMenuButton) {
+    let ov = document.getElementById("game-overlay");
+    if (!ov) {
+        ov = document.createElement("div");
+        ov.id = "game-overlay";
+        ov.style.cssText = "position:fixed;inset:0;background:rgba(0,0,0,.82);display:flex;" +
+            "flex-direction:column;align-items:center;justify-content:center;gap:22px;" +
+            "color:#fff;font-size:1.8rem;text-align:center;z-index:2000;";
+        document.body.appendChild(ov);
+    }
+    ov.innerHTML = `<div>${message}</div>` +
+        (withMenuButton
+            ? `<button class="btn btn-warning fw-bold" onclick="window.location.href='/'">В меню</button>`
+            : `<div class="spinner-border text-warning" role="status"></div>`);
+    ov.style.display = "flex";
+}
+
+function hideOverlay() {
+    const ov = document.getElementById("game-overlay");
+    if (ov) ov.style.display = "none";
+}
+
+function showResult(result) {
+    let text = "Ничья 🤝";
+    if (result === "Win") text = "🏆 Победа!";
+    else if (result === "Loss") text = "💀 Поражение";
+    showOverlay(text, true);
+}

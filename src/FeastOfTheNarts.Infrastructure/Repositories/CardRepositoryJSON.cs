@@ -22,7 +22,7 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
             _eventCards = [];
             _spellCards = [];
 
-            var json = File.ReadAllText("../Data/cards.catalog.json");
+            var json = File.ReadAllText("Data/cards.catalog.json");
             using var document = JsonDocument.Parse(json);
             var root = document.RootElement;
 
