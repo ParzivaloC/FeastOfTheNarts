@@ -1,0 +1,171 @@
+@{
+    Layout = "_Layout";
+    ViewData["Title"] = "Глоссарий — Нартский эпос";
+}
+
+<style>
+    .glossary-pills .nav-link {
+        color: #f0f0f0;
+        text-align: left;
+        border-radius: 8px;
+    }
+
+        .glossary-pills .nav-link.active {
+            background-color: #d4af37;
+            color: #1a1a1a;
+            font-weight: bold;
+        }
+
+    .lore-card {
+        background-color: #2c2c2c;
+        border: 1px solid #444;
+    }
+
+        .lore-card .hero-img {
+            width: 130px;
+            height: 100%;
+            object-fit: cover;
+            border-radius: .375rem 0 0 .375rem;
+        }
+
+    .lore-h {
+        color: #d4af37;
+    }
+</style>
+
+<div class="container my-4">
+    <h1 class="text-center lore-h mb-4">📖 Глоссарий: мир Нартов</h1>
+
+    <div class="row">
+        <!-- Модули слева -->
+        <div class="col-md-3 mb-3">
+            <div class="nav flex-column nav-pills glossary-pills" role="tablist" aria-orientation="vertical">
+                <button class="nav-link active" data-bs-toggle="pill" data-bs-target="#m-about" type="button">Что такое эпос</button>
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#m-origin" type="button">Происхождение</button>
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#m-families" type="button">Три рода нартов</button>
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#m-heroes" type="button">Герои сказаний</button>
+                <button class="nav-link" data-bs-toggle="pill" data-bs-target="#m-facts" type="button">Интересные факты</button>
+            </div>
+        </div>
+
+        <!-- Содержимое модулей -->
+        <div class="col-md-9">
+            <div class="tab-content">
+
+                <div class="tab-pane fade show active" id="m-about">
+                    <h3 class="lore-h">Что такое нартский эпос</h3>
+                    <p>Нартский эпос — грандиозный свод героических сказаний о <strong>нартах</strong>, могучем племени богатырей. Это вершина устного творчества народов Кавказа: осетин, адыгов, абхазов, чеченцев, ингушей, балкарцев и других.</p>
+                    <p>Для осетин нарты — не просто персонажи сказок, а отражение мировоззрения предков-аланов: их представлений о чести, отваге, дружбе и месте человека между землёй и небом. Сказания веками передавались из уст в уста сказителями, прежде чем были записаны.</p>
+                </div>
+
+                <div class="tab-pane fade" id="m-origin">
+                    <h3 class="lore-h">Происхождение и история</h3>
+                    <p>Корни эпоса уходят в <strong>скифо-сармато-аланскую древность</strong> (I тыс. до н.э. — первые века н.э.). Многие сюжеты перекликаются с индоиранской мифологией — общими предками целого круга народов.</p>
+                    <p>Долгое время сказания жили только в устной традиции и были записаны лишь в XIX–XX веках. Французский учёный <strong>Жорж Дюмезиль</strong> показал, что нартский эпос — бесценный ключ к мифологии древних индоевропейцев.</p>
+                </div>
+
+                <div class="tab-pane fade" id="m-families">
+                    <h3 class="lore-h">Три рода нартов</h3>
+                    <p>Нарты делились на три рода — и именно они стали фракциями в игре:</p>
+                    <ul>
+                        <li><strong>Ахсартагката (Æхсæртæггатæ)</strong> — род храбрецов и воинов. Из него вышли Сослан и Батрадз.</li>
+                        <li><strong>Бората</strong> — род богатый и многочисленный.</li>
+                        <li><strong>Алагата (Алæгатæ)</strong> — хранители святынь и обрядов. В их доме собирался нартский пир, где пили священный напиток <em>ронг</em>. Отсюда и название — «Пир Нартов».</li>
+                    </ul>
+                </div>
+
+                <div class="tab-pane fade" id="m-heroes">
+                    <h3 class="lore-h mb-3">Герои сказаний</h3>
+
+                    <div class="card lore-card text-light mb-3">
+                        <div class="row g-0">
+                            <div class="col-auto"><img src="/images/Sos.jpg" class="hero-img" alt="Сослан"></div>
+                            <div class="col">
+                                <div class="card-body">
+                                    <h5 class="lore-h">Сослан (Сосруко)</h5>
+                                    <p class="card-text mb-0">Герой солнца, рождённый из камня. Кузнец Курдалагон закалил его в волчьем молоке, сделав неуязвимым — но котёл оказался мал, и колени остались незакалёнными. Этой слабостью и воспользуется враг: <strong>Колесо Балсага</strong> подкосит ему ноги. Так в игре связаны карты «Сослан», «Колени Сослана» и «Колесо Балсага».</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card lore-card text-light mb-3">
+                        <div class="row g-0">
+                            <div class="col-auto"><img src="/images/Batraz.jpg" class="hero-img" alt="Батрадз"></div>
+                            <div class="col">
+                                <div class="card-body">
+                                    <h5 class="lore-h">Батрадз</h5>
+                                    <p class="card-text mb-0">Стальной нарт, сын Хамыца. Кузнец закалил его целиком в стали; в бою он раскаляется докрасна и обрушивается на врагов, как пущенная стрела. Гроза обидчиков и мститель за нартов.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card lore-card text-light mb-3">
+                        <div class="row g-0">
+                            <div class="col-auto"><img src="/images/Hamus.jpg" class="hero-img" alt="Хамыц"></div>
+                            <div class="col">
+                                <div class="card-body">
+                                    <h5 class="lore-h">Хамыц</h5>
+                                    <p class="card-text mb-0">Брат Сослана и отец Батрадза, лихой наездник. Владел волшебным зубом, перед которым не могла устоять ни одна женщина. Герой одновременно доблестный и плутовской.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card lore-card text-light mb-3">
+                        <div class="row g-0">
+                            <div class="col-auto"><img src="/images/Pokrov_fullllly 6.png" class="hero-img" alt="Ацамаз"></div>
+                            <div class="col">
+                                <div class="card-body">
+                                    <h5 class="lore-h">Ацамаз</h5>
+                                    <p class="card-text mb-0">Легендарный музыкант. На золотой свирели, подаренной богом зверей Афсати, он играл так, что таяли ледники, пробуждались звери и расцветала природа. Его музыкой покорено сердце красавицы Агунды.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card lore-card text-light mb-3">
+                        <div class="row g-0">
+                            <div class="col-auto"><img src="/images/image 8.png" class="hero-img" alt="Шатана"></div>
+                            <div class="col">
+                                <div class="card-body">
+                                    <h5 class="lore-h">Шатана</h5>
+                                    <p class="card-text mb-0">Вещая мать нартов, душа всего рода. Мудрая хозяйка, варит священный напиток ронг и знает ответ на любую загадку. Не раз спасала нартов от беды одним лишь словом и хитростью.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card lore-card text-light mb-3">
+                        <div class="row g-0">
+                            <div class="col-auto"><img src="/images/Pokrov_fullllly 9.png" class="hero-img" alt="Сырдон"></div>
+                            <div class="col">
+                                <div class="card-body">
+                                    <h5 class="lore-h">Сырдон</h5>
+                                    <p class="card-text mb-0">Главный трикстер эпоса — хитрец, насмешник и интриган, «злой гений нартов». Из костей своих сыновей он создал первый фæндыр (нартскую арфу), подарив народу музыку. Близок по духу скандинавскому Локи.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="m-facts">
+                    <h3 class="lore-h">Интересные факты</h3>
+                    <ul>
+                        <li>Меч Батрадза, брошенный в море перед его смертью, перекликается с легендой о мече короля Артура.</li>
+                        <li>Волшебная чаша нартов <strong>Уацамонга</strong> сама поднималась к губам того, кто говорил правду о своих подвигах — параллель с Граалем.</li>
+                        <li>Сослан — солнечный герой, и его гибель от огненного колеса отражает древний миф об умирающем и возрождающемся солнце.</li>
+                        <li>Один и тот же герой у разных народов Кавказа носит разные имена: Сослан у осетин — это Сосруко у адыгов.</li>
+                        <li>Нартский эпос считается общим культурным достоянием целого ряда кавказских народов.</li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="/" class="btn btn-outline-warning">← В меню</a>
+    </div>
+</div>
