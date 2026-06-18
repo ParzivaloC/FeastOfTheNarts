@@ -106,14 +106,30 @@ function renderBoard(state) {
     const hand = document.getElementById("you-hand");
     if (hand) hand.innerHTML = state.you.hand.map(c => createCardHtml(c, true)).join('');
 
-    initDragAndDrop();
+    bindCardDrag();
 }
 
 
 
 
-//Drag & Drop: на дроп отправляет ход на сервер!!!!!!!!!!!!!!!!!!!!!!
-function initDragAndDrop() {
+function initDropZones() {
+    document.querySelectorAll('.player-row').forEach(row => {
+        row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drag-over'); });
+        row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
+        row.addEventListener('drop', (e) => {
+            e.preventDefault();
+            row.classList.remove('drag-over');
+            if (!currentState || !currentState.isYourTurn) return;
+            const cardId = e.dataTransfer.getData('text/plain');
+            const rowName = row.getAttribute('data-row');
+            connection.invoke("PlayCard", cardId, rowName)
+                .catch(err => console.error("Ошибка PlayCard:", err.toString()));
+        });
+    });
+}
+
+// КАЖДЫЙ рендер — карты пересоздаются, поэтому их слушатели вешаем заново (утечки нет)
+function bindCardDrag() {
     document.querySelectorAll('.game-card[draggable="true"]').forEach(card => {
         card.addEventListener('dragstart', (e) => {
             e.dataTransfer.setData('text/plain', card.dataset.id);
@@ -121,26 +137,9 @@ function initDragAndDrop() {
         });
         card.addEventListener('dragend', () => card.style.opacity = '1');
     });
-
-    document.querySelectorAll('.player-row').forEach(row => {
-        row.addEventListener('dragover', (e) => { e.preventDefault(); row.classList.add('drag-over'); });
-        row.addEventListener('dragleave', () => row.classList.remove('drag-over'));
-
-        row.addEventListener('drop', (e) => {
-            e.preventDefault();
-            row.classList.remove('drag-over');
-
-            if (!currentState || !currentState.isYourTurn) return; //не твой ход
-
-            const cardId = e.dataTransfer.getData('text/plain');
-            const rowName = row.getAttribute('data-row'); //Melee / Ranged / Siege
-
-            //локально не двигает: сервер пришлёт ReceiveState и перерисует поле!!!!
-            connection.invoke("PlayCard", cardId, rowName)
-                .catch(err => console.error("Ошибка PlayCard:", err.toString()));
-        });
-    });
 }
+
+
 
 
 
@@ -201,3 +200,4 @@ function showResult(result) {
     else if (result === "Loss") text = "💀 Поражение";
     showOverlay(text, true);
 }
+initDropZones();
