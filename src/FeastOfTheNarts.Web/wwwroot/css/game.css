@@ -1,6 +1,5 @@
-﻿/* --- ОСНОВНАЯ СТРУКТУРА --- */
-body {
-    background-color: #1a0f0a; /* Темный фон под дерево */
+﻿body {
+    background-color: #1a0f0a; /*темный фон под дерево */
     color: #f5deb3;
     font-family: 'Georgia', serif;
     margin: 0;
@@ -16,7 +15,9 @@ body {
     box-sizing: border-box;
 }
 
-/* --- БОКОВЫЕ ПАНЕЛИ --- */
+
+
+/*БОКОВЫЕ ПАНЕЛИ*/
 .sidebar-left {
     width: 220px;
     display: flex;
@@ -49,7 +50,7 @@ body {
     gap: 10px;
 }
 
-/* Половины поля (Противник / Игрок) */
+/*половины поля (Противник / Игрок) */
 .player-board-half {
     flex: 1;
     display: flex;
@@ -61,11 +62,11 @@ body {
     padding: 5px;
 }
 
-/* Сами боевые ряды */
+/*сами боевые ряды */
 .board-row {
-    flex: 1; /* Ряды тянутся равномерно */
+    flex: 1; /*ряды тянутся равномерно */
     border: 1px solid rgba(138, 102, 62, 0.4);
-    background-color: rgba(0, 0, 0, 0.25); /* Легкое затемнение ряда */
+    background-color: rgba(0, 0, 0, 0.25); /*легкое затемнение ряда */
     display: flex;
     align-items: center;
     padding: 0 10px;
@@ -75,13 +76,13 @@ body {
     transition: background-color 0.2s;
 }
 
-    /* Подсветка ряда, когда над ним висит карта */
+    /*подсветка ряда, когда над ним висит карта */
     .board-row.drag-over {
         background-color: rgba(212, 175, 55, 0.2);
         border: 2px dashed #d4af37;
     }
 
-/* Очки конкретного ряда (кружочек слева) */
+/*очки конкретного ряда (кружочек слева) */
 .row-score {
     width: 35px;
     height: 35px;
@@ -97,7 +98,7 @@ body {
     flex-shrink: 0;
 }
 
-/* Контейнер для карт внутри ряда */
+/*контейнер для карт внутри ряда */
 .row-cards-container {
     flex: 1;
     display: flex;
@@ -106,7 +107,10 @@ body {
     align-items: center;
 }
 
-/* --- РУКА ИГРОКА --- */
+
+
+
+/*РУКА ИГРОКА*/
 .hand-row {
     height: 140px;
     border: 3px dashed #8b5a2b;
@@ -117,29 +121,93 @@ body {
     align-items: center;
     gap: 15px;
     padding: 10px;
-    overflow-x: auto; /* Скролл, если карт много */
+    overflow-x: auto; /*скролл, если карт много */
 }
 
-/* --- КАРТЫ --- */
+
+
+
+/*КАРТЫ*/
 .game-card {
+    position: relative;
+    overflow: hidden;
     width: 80px;
     height: 110px;
-    background: linear-gradient(135deg, #e6d5b8, #c5b08d);
+    background: linear-gradient(135deg, #2a1c0e, #3a2614); /*фон под картинкой */
     border: 2px solid #543d24;
     border-radius: 6px;
-    color: #211306;
     display: flex;
     flex-direction: column;
     justify-content: space-between;
-    padding: 5px;
     font-weight: bold;
-    font-size: 0.8rem;
     cursor: grab;
     box-shadow: 3px 3px 8px rgba(0,0,0,0.6);
-    flex-shrink: 0; /* Чтобы карты не сжимались */
+    flex-shrink: 0; /*чтоб карты не сжимались */
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
+
+    .game-card:hover {
+        transform: translateY(-6px);
+        box-shadow: 0 8px 18px rgba(0,0,0,0.8);
+        z-index: 5;
+    }
 
     .game-card:active {
         cursor: grabbing;
         transform: scale(1.05);
+    }
+
+/*картинка карты на всю площадь */
+.card-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 0;
+}
+
+/*бейдж силы (сверху слева, поверх картинки) */
+.card-power {
+    position: relative;
+    z-index: 1;
+    align-self: flex-start;
+    margin: 3px;
+    min-width: 26px;
+    height: 24px;
+    padding: 0 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.78);
+    color: #d4af37;
+    border: 1px solid #d4af37;
+    border-radius: 12px;
+    font-size: 0.72rem;
+}
+
+
+/*плашка с именем (снизу, поверх картинки) */
+.card-name {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    box-sizing: border-box;
+    padding: 3px 2px;
+    background: rgba(0, 0, 0, 0.72);
+    color: #f5deb3;
+    text-align: center;
+    font-size: 0.6rem;
+    line-height: 1.05;
+}
+
+/*Герои - золотое свечение */
+.hero-card {
+    border: 2px solid #d4af37;
+    box-shadow: 0 0 10px #d4af37, 3px 3px 8px rgba(0, 0, 0, 0.6);
+}
+
+    .hero-card .card-power {
+        color: #ffd700;
+        border-color: #ffd700;
     }
