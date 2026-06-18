@@ -60,13 +60,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseRouting();
 app.UseCors("AllowFrontend");
-
-app.MapControllers();
-
 app.UseAuthentication();
 app.UseAuthorization();
-
 
 app.MapControllers();
 app.MapHub<GameHub>("/gamehub");

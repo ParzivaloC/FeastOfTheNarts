@@ -1,5 +1,6 @@
 using FeastOfTheNarts.Core.Domain.Enums;
 using FeastOfTheNarts.Core.Domain.Models;
+using FeastOfTheNarts.Core.Domain.RepositoryInterfaces;
 
 namespace FeastOfTheNarts.Core.Services
 {
@@ -18,14 +19,25 @@ namespace FeastOfTheNarts.Core.Services
         // Id победителя. null — если ничья или матч ещё не окончен.
         public string? WinnerId { get; private set; }
 
+        // Замок матча: к движку обращаются два игрока из разных потоков,
+        // поэтому один ход обрабатываем за раз (см. использование в GameHub).
+        public object SyncRoot { get; } = new();
 
-        public GameEngine(string matchId, string player1Id, string player2Id)
+        // Источник определений карт (cards.catalog.json через ICardRepository)
+        private readonly ICardRepository _cards;
+
+        public GameEngine(string matchId, string player1Id, string player2Id, ICardRepository cards)
         {
             MatchId = matchId;
+            _cards = cards;
             Board = new GameBoard(player1Id, player2Id);
 
             Player1State = new PlayerState(player1Id);
             Player2State = new PlayerState(player2Id);
+
+            // Имя для отображения = id игрока (это его логин)
+            Player1State.DisplayName = player1Id;
+            Player2State.DisplayName = player2Id;
 
             CurrentPlayerId = player1Id;
         }
@@ -171,6 +183,7 @@ namespace FeastOfTheNarts.Core.Services
         private void GenerateDummyDeck(PlayerState state)
         {
             int idOffset = state.PlayerId == Player1State.PlayerId ? 1000 : 2000;
+            int[] imgs = { 1, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14 }; // доступные картинки из wwwroot/images
 
             for (int i = 1; i <= 20; i++)
             {
@@ -179,13 +192,50 @@ namespace FeastOfTheNarts.Core.Services
                 state.Deck.Add(new UnitCard
                 {
                     Id = (idOffset + i).ToString(),
+                    Name = $"Нарт {i}",
                     BasePower = Random.Shared.Next(1, 11),
                     IsHero = i % 10 == 0,
-                    TargetRow = row
+                    TargetRow = row,
+                    ImageUrl = $"/images/Pokrov_fullllly {imgs[i % imgs.Length]}.png"
                 });
             }
+
+            // Именные карты "Пира Нартов" берём из каталога (cards.catalog.json),
+            // клонируя под каждого игрока (см. CloneCard)
+            state.Deck.AddRange(BuildCatalogCards());
         }
         //===========================================================
+
+        // Свежие копии всех карт каталога для одной колоды
+        private List<BaseCard> BuildCatalogCards() =>
+            _cards.GetUnitCards().Cast<BaseCard>()
+                  .Concat(_cards.GetEventCards())
+                  .Concat(_cards.GetSpellCards())
+                  .Select(CloneCard)
+                  .ToList();
+
+        // Клон карты: репозиторий хранит один экземпляр на определение, а на столе
+        // силу карты меняют эффекты — поэтому каждому игроку нужна своя копия
+        private static BaseCard CloneCard(BaseCard card) => card switch
+        {
+            UnitCard u => new UnitCard
+            {
+                Id = u.Id, Name = u.Name, Description = u.Description, Faction = u.Faction,
+                ImageUrl = u.ImageUrl, BasePower = u.BasePower, TargetRow = u.TargetRow,
+                IsHero = u.IsHero, Ability = u.Ability
+            },
+            EventCard e => new EventCard
+            {
+                Id = e.Id, Name = e.Name, Description = e.Description, Faction = e.Faction,
+                ImageUrl = e.ImageUrl, Effect = e.Effect
+            },
+            SpellCard s => new SpellCard
+            {
+                Id = s.Id, Name = s.Name, Description = s.Description, Faction = s.Faction,
+                ImageUrl = s.ImageUrl, Effect = s.Effect
+            },
+            _ => card
+        };
 
         // Быстрый наскок Хамыца: призвать из своей колоды всех обычных нартов с базовой силой <= 4 в ряд Бората (Ranged)
         private void ResolveKhamytsRally(PlayerBoard board)
@@ -406,6 +456,7 @@ namespace FeastOfTheNarts.Core.Services
         public void PassTurn(string playerId)
         {
             if (Phase != GamePhase.InProgress) return;
+            if (playerId != CurrentPlayerId) return; // пасовать можно только в свой ход
 
             if (playerId == Player1State.PlayerId)
             {
