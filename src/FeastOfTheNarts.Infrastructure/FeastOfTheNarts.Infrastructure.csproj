@@ -10,4 +10,13 @@
     <ProjectReference Include="..\FeastOfTheNarts.Core\FeastOfTheNarts.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Data\cards.catalog.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Data\users.json">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
