@@ -30,7 +30,7 @@ namespace FeastOfTheNarts.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            //передает пустую строку вместо телефона, так как мы от него отказались
+            //передает пустую строку вместо телефона
             bool isRegistered = _userService.RegisterUser(username, password, email, "");
 
             if (!isRegistered)
@@ -39,7 +39,7 @@ namespace FeastOfTheNarts.Web.Controllers
                 return RedirectToAction("Index", "Home");
             }
 
-            //АВТОМАТИЧЕСКИЙ ВХОД ПОСЛЕ УСПЕШНОЙ РЕГИСТРАЦИИ
+            //авто вход после рега
             var user = _userService.VerifyUser(email, password);
             if (user != null)
             {
@@ -51,7 +51,7 @@ namespace FeastOfTheNarts.Web.Controllers
 
                 var claimsIdentity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
 
-                //запись куки(временное или постоянное решение: На усмотрение Амридину)
+                //запись куки(временное или постоянное решение: на усмотрение Амридину)
                 await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
             }
 
