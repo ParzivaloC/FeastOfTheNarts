@@ -338,34 +338,23 @@ namespace FeastOfTheNarts.Core.Services
         private PlayerState StateOf(PlayerBoard board) =>
             board == Board.Player1Board ? Player1State : Player2State;
 
+        // Игрок не может ходить, если спасовал ИЛИ у него кончились карты
+        private bool CannotAct(PlayerState p) => p.HasPassed || p.Hand.Count == 0;
+
         private void SwitchTurn()
         {
-            if (Player1State.HasPassed && Player2State.HasPassed)
+            // Раунд заканчивается, когда оба больше не могут ходить (пас или пустая рука)
+            if (CannotAct(Player1State) && CannotAct(Player2State))
             {
                 ResolveRound();
                 return;
             }
 
-            //смена текущего игрока на противположного после хода
-            if (CurrentPlayerId == Player1State.PlayerId)
-            {
-                CurrentPlayerId = Player2State.PlayerId;
-            }
-            else
-            {
-                CurrentPlayerId = Player1State.PlayerId;
-            }
-
-
-            //Проверка текущего игрока и если он уже спасовал , возвращаем ход другому игроку
-            if (CurrentPlayerId == Player1State.PlayerId && Player1State.HasPassed)
-            {
-                CurrentPlayerId = Player2State.PlayerId;
-            }
-            else if (CurrentPlayerId == Player2State.PlayerId && Player2State.HasPassed)
-            {
-                CurrentPlayerId = Player1State.PlayerId;
-            }
+            // Ход переходит сопернику, если он ещё может ходить;
+            // если соперник не может — ход остаётся у текущего (он точно может, иначе сработал бы resolve выше)
+            var other = CurrentPlayerId == Player1State.PlayerId ? Player2State : Player1State;
+            if (!CannotAct(other))
+                CurrentPlayerId = other.PlayerId;
         }
 
         private void ResolveRound()
@@ -395,6 +384,15 @@ namespace FeastOfTheNarts.Core.Services
             Player2State.HasPassed = false;
 
             CheckForGameEnd();
+            if (Phase != GamePhase.InProgress) return; // матч окончен — дальше не настраиваем
+
+            // Готовим следующий раунд с учётом пустых рук (колоды между раундами не добираются):
+            if (CannotAct(Player1State) && CannotAct(Player2State))
+                ResolveRound();                          // обоим нечем играть — закрываем раунд сразу (и так до конца матча)
+            else if (CannotAct(Player1State))
+                CurrentPlayerId = Player2State.PlayerId;  // у P1 нет карт — ходит P2
+            else if (CannotAct(Player2State))
+                CurrentPlayerId = Player1State.PlayerId;  // у P2 нет карт — ходит P1
         }
 
         // Проверяет, не закончился ли матч после потери жизней
