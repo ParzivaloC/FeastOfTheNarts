@@ -12,7 +12,7 @@ namespace FeastOfTheNarts.Infrastructure.Repositories
     public class UserRepositoryJSON : IUserRepository
     {
         private readonly List<User> _users;
-        private const string _filepath = "../Data/users.json";
+        private const string _filepath = "Data/users.json";
 
         public UserRepositoryJSON()
         {
